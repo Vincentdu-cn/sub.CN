@@ -1,0 +1,71 @@
+{
+  "video_root": "/video",
+  "radarr_url": "http://YOUR_RADARR_HOST:7371",
+  "radarr_api_key": "YOUR_RADARR_API_KEY",
+  "radarr_path_mappings": [
+    {
+      "from": "/video",
+      "to": "/video"
+    }
+  ],
+  "sonarr_url": "http://YOUR_SONARR_HOST:25002",
+  "sonarr_api_key": "YOUR_SONARR_API_KEY",
+  "sonarr_path_mappings": [
+    {
+      "from": "/tv",
+      "to": "/tv/Video/TV/"
+    }
+  ],
+  "auto_download": true,
+  "auto_download_lang": "zho_chs",
+  "subtitle_provider": "zimuku",
+  "concurrent_search": true,
+  "enabled_providers": [
+    "zimuku",
+    "subhd",
+    "assrt",
+    "opensubtitles"
+  ],
+  "provider_fallback_order": [
+    "zimuku",
+    "subhd",
+    "assrt",
+    "opensubtitles"
+  ],
+  "max_download_count": 3,
+  "score_threshold_pct": 10,
+  "good_score_threshold": 72,
+  "chinese_score_english_fallback": 72,
+  "chinese_scarce_count": 1,
+  "chinese_scarce_buffer": 15,
+  "min_score_pct": 30,
+  "baidu_ocr_api_key": "YOUR_BAIDU_OCR_API_KEY",
+  "baidu_ocr_secret_key": "YOUR_BAIDU_OCR_SECRET_KEY",
+  "assrt_api_token": "YOUR_ASSRT_API_TOKEN",
+  "opensubtitles_api_key": "YOUR_OPENSUBTITLES_API_KEY",
+  "opensubtitles_username": "YOUR_OPENSUBTITLES_USERNAME",
+  "opensubtitles_password": "YOUR_OPENSUBTITLES_PASSWORD",
+  "ai_api_url": "http://YOUR_AI_HOST:8787/v1",
+  "ai_api_key": "YOUR_AI_API_KEY",
+  "ai_model": "H20/trans",
+  "ai_target_lang": "Chinese",
+  "ai_source_lang": "English",
+  "ai_bilingual": true,
+  "ai_batch_size": 30,
+  "ai_max_retries": 3,
+  "ai_retry_delay": 2.0,
+  "ai_temperature": 0.5,
+  "ai_max_output_tokens": 4096,
+  "ai_system_prompt": "",
+  "ai_bilingual_prompt": "",
+  "ai_glossary": "",
+  "ai_context_lines": 2,
+  "ai_output_mode": "text",
+  "ai_streaming": true,
+  "ai_concurrency": 2,
+  "ai_review_enabled": true,
+  "ai_review_model": "H20/agent",
+  "ai_review_timeout": 300,
+  "ai_review_prompt": "",
+  "queue_max_size": 100
+}

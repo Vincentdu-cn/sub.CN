@@ -1,0 +1,29 @@
+# 敏感配置（用 config.example.json 作为模板）
+config.json
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 日志
+*.log
+opencode-web.log
+
+# 数据缓存
+*_cache.json
+arr_data_cache.json
+subtitle_status_cache.json
+queue_data.json
+
+# 诊断报告
+diag_*.html
+diag_*.json
+
+# 临时文件
+1
+
+# opencode 工作目录
+.omo/
+
+# pytest 缓存
+.pytest_cache/

@@ -1,0 +1,257 @@
+@startuml 字幕下载全流程决策图
+!theme cerulean
+skinparam backgroundColor #1a1a2e
+skinparam ActivityBackgroundColor #16213e
+skinparam ActivityBorderColor #2d2d44
+skinparam ActivityDiamondBackgroundColor #0f3460
+skinparam ActivityDiamondBorderColor #007bff
+skinparam ActivityDiamondFontColor #f8f9fa
+skinparam NoteBackgroundColor #0f3460
+skinparam NoteBorderColor #007bff
+skinparam NoteFontColor #f8f9fa
+skinparam ArrowColor #6c757d
+skinparam ActivityFontColor #e0e0e0
+
+title 字幕下载全流程决策图
+
+|#6c757d| Webhook 入口 |
+start
+:Radarr / Sonarr Webhook 触发;
+
+if (auto_download 开启?) then (No)
+  #6c757d:ignored:
+  auto_download disabled;
+  stop
+else (Yes)
+endif
+
+if (eventType ∈ {Download,\nMovieFileImported,\nEpisodeFileImported}?) then (No)
+  #6c757d:ignored:
+  event 不匹配;
+  stop
+else (Yes)
+endif
+
+:提取 file_path;
+
+if (文件路径存在?) then (Yes)
+elseif (路径映射成功?) then (Yes)
+else (No)
+  #6c757d:ignored:
+  file not found;
+  stop
+endif
+
+if (是视频文件?\n后缀 ∈ VIDEO_EXTENSIONS?) then (No)
+  #6c757d:ignored:
+  not a video file;
+  stop
+else (Yes)
+endif
+
+if (_has_subtitle()?\n已有字幕?) then (Yes)
+  #ffc107:skipped:
+  subtitle already exists;
+  stop
+else (No)
+endif
+
+|#4a90d9| 下载队列 |
+:加入下载队列
+task_id = dl_xxx
+status = queued;
+
+:_download_worker()
+取出 task;
+
+if (实时字幕状态 == zh?\n且非 force 模式?) then (Yes)
+  #ffc107:skipped:
+  已有中文字幕;
+  stop
+else (No)
+endif
+
+|#17a2b8| 构建搜索关键词 |
+:构建搜索关键词 _build_search_keyword;
+
+note right
+  优先级:
+  1. imdb_id
+  2. scene_name
+  3. title + year
+  4. 文件名 stem
+end note
+
+|#17a2b8| 搜索模式 |
+if (concurrent_search?) then (Yes: 并发)
+  :所有 enabled_providers
+  并行搜索
+  asyncio.gather;
+else (No: 顺序)
+  :按 fallback_order 逐引擎搜索
+  zimuku → subhd → assrt → opensubtitles;
+endif
+
+:合并所有结果;
+
+|#007bff| 评分阶段 |
+:compute_match_score
+Bazarr 权重体系;
+
+note right
+  **Movie 满分=120**
+  title: 55
+  year: 28
+  release_group: 13
+  source: 7
+  streaming_service: 5
+  edition: 5
+  audio_codec: 3
+  resolution: 2
+  video_codec: 2
+
+  **Episode 满分=356**
+  series: 172
+  year: 86
+  season: 30
+  episode: 30
+  release_group: 14
+  source: 7
+  ss/edition: 5
+  audio_codec: 3
+  res/vc: 2
+end note
+
+:score=0 兜底:
+token 重叠率
+score = max(10, 40×ratio);
+
+:按 score 降序排列;
+
+|#e83e8c| 语言筛选 _select_eligible_results |
+if (lang 参数?) then (简体中文 _ZH_SIM)
+  :Tier1: 筛选简体;
+  if (有结果?) then (Yes)
+  else (No 兜底)
+    :Tier2: 筛选繁体 _ZH_TRA;
+  endif
+elseif (繁体中文 _ZH_TRA) then
+  :Tier1: 筛选繁体;
+  if (有结果?) then (Yes)
+  else (No 兜底)
+    :Tier2: 筛选简体 _ZH_SIM;
+  endif
+elseif (英文 _EN) then
+  :筛选英文;
+else (其他)
+  :筛选全部中文 _ZH_ALL;
+endif
+
+:_threshold_pick 阈值筛选;
+note right
+  1. top_score = 最高分
+  2. 阈值 = top_score × threshold%
+  3. eligible = score ≥ 阈值
+  4. 若eligible≥2:
+     diff = (第1-第2)/第1×100%
+     若 diff > threshold%: 只取第1
+  5. 截取 max_download_count 个
+end note
+
+|#28a745| 中文主字幕下载 |
+while (eligible 不为空\n且 success < max_dl?) is (Yes)
+  if (当前结果是英文?) then (Yes)
+    if (已有英文字幕?) then (Yes)
+      #ffc107:skipped:
+      已有英文字幕;
+      detach
+    endif
+  endif
+
+  :调用 provider.download();
+
+  if (下载结果?) then (成功: 后缀∈SUBTITLE_EXT)
+    #28a745:success_count++;
+    记录 success;
+  else (失败)
+    #dc3545:记录 failed;
+    尝试下一个;
+  endif
+endwhile (No)
+
+|#e83e8c| 第二阶段: 英文补充判断 |
+:计算 zh_best_pct
+(非英文最高 score_pct);
+
+:计算 zh_downloaded
+(任一非英文成功?);
+
+note right
+  **need_en = A ∨ B ∨ C ∨ D**
+
+  **条件A: 零中文**
+  zh_best_pct == 0
+  → 完全没有中文搜索结果
+
+  **条件B: 低分**
+  0 < zh_best_pct < 72%
+  → 有中文但质量不足
+
+  **条件C: 稀缺+勉强**
+  eligible ≤ 1
+  AND zh_best_pct < 87%
+  → 候选太少 + 分数不稳固
+
+  **条件D: 下载全挂**
+  zh_best_pct > 0
+  AND NOT zh_downloaded
+  → 有候选但下载全部失败
+end note
+
+if (need_en = True\nAND 没有英文字幕?) then (Yes)
+  :搜索英文字幕;
+
+  if (顺序搜索?) then (Yes)
+    :逐引擎搜索;
+    if (某引擎英文最高分 ≥ 72%?) then (Yes: early stop)
+    endif
+  else (No: 并发)
+    :所有引擎并行;
+  endif
+
+  :_select_en_supplement
+  筛选英文 eligible;
+
+  :逐个下载英文 eligible;
+
+else (No)
+endif
+
+|#28a745| 最终结果判定 |
+if (downloaded 有效?\n后缀 ∈ SUBTITLE_EXT?) then (Yes)
+  #28a745:status = success;
+  记录字幕路径;
+  _cleanup_archives;
+
+  :检测字幕语言;
+  if (字幕语言?) then (zh / zh+en)
+    :缓存 = "zh";
+  elseif (en) then
+    :缓存 = "en";
+  else (其他)
+    :缓存 = "none";
+  endif
+
+  :更新 subtitle_status_cache;
+
+elseif (全部 skipped?) then (Yes)
+  #ffc107:status = skipped;
+  已有英文字幕 未找到中文;
+else (No)
+  #dc3545:status = failed;
+  无可用字幕;
+endif
+
+stop
+
+@enduml

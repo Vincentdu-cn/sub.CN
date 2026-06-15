@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sub.CN</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --bg-deep: #16213e;
+            --bg-card: #1a2744;
+            --border: #0f3460;
+            --accent: #16c79a;
+            --accent-hover: #12a37d;
+            --danger: #e74c3c;
+            --danger-hover: #c0392b;
+            --warning: #ffc107;
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --color-blue: #3498db;
+            --color-purple: #9b59b6;
+            --color-green: #27ae60;
+            --color-gray: #adb5bd;
+            --color-gray-dark: #555;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.3);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+            --focus-ring: 0 0 0 2px rgba(22,199,154,0.4);
+
+            /* Spacing scale (4px base) */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 12px;
+            --space-lg: 16px;
+            --space-xl: 20px;
+            --space-2xl: 24px;
+
+            /* Typography scale */
+            --text-xs: 0.72rem;
+            --text-sm: 0.8rem;
+            --text-base: 0.9rem;
+            --text-md: 0.95rem;
+            --text-lg: 1.1rem;
+            --text-xl: 1.4rem;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :focus-visible { outline: none; box-shadow: var(--focus-ring); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: var(--bg-deep);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h1 {
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sidebar-logo {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+        .sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px; color: var(--text-dim);
+            text-decoration: none; cursor: pointer; border: none;
+            background: none; width: 100%; text-align: left;
+            font-size: 0.95rem; transition: all 0.2s; border-left: 3px solid transparent;
+        }
+        .nav-item:hover { color: var(--text); background: rgba(22,199,154,0.06); }
+        .nav-item.active { color: var(--accent); background: rgba(22,199,154,0.1); border-left-color: var(--accent); }
+        .nav-item:focus-visible { box-shadow: var(--focus-ring) inset; }
+        .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
+        .main-wrap {
+            flex: 1; margin-left: 220px; display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .top-bar {
+            display: none; align-items: center; padding: 12px 16px;
+            background: var(--bg-deep); border-bottom: 1px solid var(--border);
+        }
+        .hamburger {
+            background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer;
+            padding: 4px 8px; margin-right: 12px;
+        }
+        .top-bar-title { font-size: 1rem; color: var(--accent); font-weight: 600; }
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 99;
+        }
+        #page-content { flex: 1; padding: 24px; max-width: 1400px; width: 100%; }
+        .page-title {
+            font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; color: var(--text);
+        }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 600; margin-bottom: 16px;
+            color: var(--accent); border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .form-row {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
+        }
+        .form-label {
+            width: 160px; flex-shrink: 0; font-size: 0.9rem; color: var(--text-dim);
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .info-tip {
+            position: relative; display: inline-flex; align-items: center; cursor: help;
+            font-style: normal; font-size: 0.8rem; color: var(--text-dim); opacity: 0.6;
+        }
+        .info-tip:hover { opacity: 1; }
+        .info-tip::after {
+            content: attr(data-tip);
+            position: absolute; left: 50%; bottom: 130%; transform: translateX(-50%);
+            background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.8rem;
+            white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            box-shadow: var(--shadow-sm); z-index: 100;
+        }
+        .info-tip:hover::after { opacity: 1; }
+        .form-input, .form-select, .form-textarea {
+            background: var(--bg); color: var(--text); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.9rem;
+            flex: 1; min-width: 200px;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none; border-color: var(--accent);
+        }
+        .form-textarea { min-height: 80px; resize: vertical; font-family: monospace; font-size: 0.9rem; }
+        .form-checkbox { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: var(--radius-sm);
+            font-size: 0.9rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-loading { pointer-events: none; opacity: 0.7; position: relative; }
+        .btn-loading .spinner { width: 14px; height: 14px; border-width: 2px; }
+        .btn-danger { background: var(--danger); color: var(--bg); }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn:focus-visible { box-shadow: var(--focus-ring); }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .btn-outline {
+            background: transparent; border: 1px solid var(--border); color: var(--text);
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid var(--text-dim); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast-container {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+            z-index: 9999;
+            display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;
+        }
+        .toast {
+            padding: 12px 20px; border-radius: var(--radius-sm);
+            font-size: 0.9rem; animation: fadeIn 0.3s; pointer-events: auto;
+            max-width: 400px; word-break: break-word;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast-dismiss {
+            background: none; border: none; color: inherit; opacity: 0.5;
+            cursor: pointer; padding: 0 4px; font-size: 1.1rem; line-height: 1;
+        }
+        .toast-dismiss:hover { opacity: 1; }
+        .toast.removing { animation: fadeOut 0.3s forwards; }
+        .toast.success { background: rgba(22,199,154,0.15); border: 1px solid var(--accent); color: var(--accent); }
+        .toast.error { background: rgba(231,76,60,0.15); border: 1px solid var(--danger); color: var(--danger); }
+        .toast.info { background: rgba(255,193,7,0.15); border: 1px solid var(--warning); color: var(--warning); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
+        .movie-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;
+        }
+        .movie-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; flex-direction: column; height: 100%;
+        }
+        .movie-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .movie-poster {
+            background: var(--bg-deep);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: var(--border);
+            aspect-ratio: 2/3; overflow: hidden; position: relative;
+        }
+        .movie-poster img {
+            width: 100%; height: 100%; display: block;
+            object-fit: cover;
+        }
+        .movie-info { padding: 12px; flex: 1; display: flex; flex-direction: column; }
+        .movie-title {
+            font-size: 0.95rem; font-weight: 600; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 6px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .movie-title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+        .movie-meta { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .movie-actions { display: flex; gap: 6px; margin-top: auto; }
+        .series-list { display: flex; flex-direction: column; gap: 8px; }
+        .series-item {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); overflow: hidden;
+        }
+        .series-header {
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .series-header:hover { background: rgba(22,199,154,0.05); }
+        .series-poster { width: 40px; height: 60px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+        .series-title { flex: 1; font-weight: 600; font-size: 0.95rem; }
+        .series-meta { font-size: 0.8rem; color: var(--text-dim); white-space: nowrap; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+        .season-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: rgba(22,199,154,0.15); color: var(--accent); }
+        .series-expand { font-size: 0.8rem; color: var(--text-dim); transition: transform 0.2s; }
+        .series-expand.open { transform: rotate(90deg); }
+        .episode-list { display: none; border-top: 1px solid var(--border); }
+        .episode-list.open { display: block; }
+        .episode-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px 12px 28px; border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+        .episode-item:last-child { border-bottom: none; }
+        .episode-item:hover { background: rgba(22,199,154,0.05); }
+        .episode-num { font-size: 0.9rem; color: var(--accent); font-weight: 600; min-width: 50px; }
+        .episode-title-text { flex: 1; font-size: 0.9rem; word-break: break-word; }
+        .episode-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+        .lang-badge {
+            display: inline-flex; align-items: center;
+            padding: 1px 6px; border-radius: 3px;
+            font-size: 0.65rem; font-weight: 600;
+            border: 1px solid;
+            flex-shrink: 0;
+        }
+        .lang-badge.zh { background: rgba(22,199,154,0.06); color: var(--accent); border-color: rgba(22,199,154,0.35); }
+        .lang-badge.en { background: rgba(52,152,219,0.06); color: var(--color-blue); border-color: rgba(52,152,219,0.35); }
+        .lang-badge.zhen { background: rgba(155,89,182,0.06); color: var(--color-purple); border-color: rgba(155,89,182,0.35); }
+        .lang-badge.none { background: rgba(231,76,60,0.06); color: var(--danger); border-color: rgba(231,76,60,0.35); }
+        .lang-badge.missing { background: rgba(108,117,125,0.06); color: var(--color-gray); border-color: rgba(108,117,125,0.35); }
+        .queue-section { margin-bottom: 24px; }
+        .queue-section-title {
+            font-size: 1.1rem; font-weight: 600; margin-bottom: 12px;
+            padding-bottom: 8px; border-bottom: 1px solid var(--border);
+        }
+        .queue-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-bottom: 1px solid var(--border);
+        }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-path { flex: 1; font-size: 0.9rem; word-break: break-all; }
+        .queue-status { font-size: 0.9rem; }
+        .queue-status.active { color: var(--accent); }
+        .queue-status.done { color: var(--color-green); }
+        .queue-status.error { color: var(--danger); }
+        .queue-status.skipped { color: var(--color-gray); }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%; height: 6px; background: var(--bg); border-radius: 3px;
+            overflow: hidden; margin-top: 4px;
+        }
+        .progress-bar-fill {
+            height: 100%; border-radius: 3px; transition: width 0.4s ease;
+            background: var(--accent);
+        }
+        .progress-bar-fill.error { background: var(--danger); }
+        .progress-bar-text { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+        .breadcrumb {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+            padding: 12px; background: var(--bg-deep); border-radius: var(--radius-sm);
+            font-size: 0.9rem; flex-wrap: wrap;
+        }
+        .breadcrumb a { color: var(--accent); text-decoration: none; cursor: pointer; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb .sep { color: var(--color-gray-dark); }
+        .entry-list { list-style: none; }
+        .entry-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s;
+        }
+        .entry-item:last-child { border-bottom: none; }
+        .entry-item:hover { background: rgba(22,199,154,0.04); }
+        .entry-icon { font-size: 1.4rem; width: 32px; text-align: center; flex-shrink: 0; }
+        .entry-name { flex: 1; word-break: break-all; font-size: 0.95rem; }
+        .entry-meta { color: var(--text-dim); font-size: 0.8rem; white-space: nowrap; margin-left: 8px; }
+        .entry-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .subtitle-indicator { color: var(--accent); font-size: 1rem; margin-left: 4px; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .log-table th, .log-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .log-table th { color: var(--text-dim); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .log-table tbody tr:hover { background: rgba(22,199,154,0.04); }
+        .log-status {
+            display: inline-block; padding: 4px 12px; border-radius: 12px;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .log-status.success { background: rgba(22,199,154,0.2); color: var(--accent); }
+        .log-status.error { background: rgba(231,76,60,0.2); color: var(--danger); }
+        .log-status.failed { background: rgba(255,193,7,0.2); color: var(--warning); }
+        .log-status.skipped { background: rgba(108,117,125,0.2); color: var(--color-gray); }
+        .log-actions { margin-bottom: 16px; text-align: right; }
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--text-dim); }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+        .sub-picker {
+            position: absolute; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 8px; min-width: 240px;
+            box-shadow: var(--shadow-lg); z-index: 200;
+        }
+        .sub-picker-item {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            border-radius: var(--radius-sm); transition: background 0.15s;
+        }
+        .sub-picker-item:hover { background: rgba(22,199,154,0.08); }
+        .sub-picker-name { flex: 1; font-size: 0.9rem; word-break: break-all; }
+        .sub-picker-badge { font-size: 0.72rem; color: var(--text-dim); }
+        .sub-picker-exists { font-size: 0.8rem; color: var(--accent); }
+        .test-btn { min-width: auto; }
+        .section-gap { margin-top: 24px; }
+
+        /* Toolbar */
+        .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .toolbar .btn { white-space: nowrap; }
+        .toolbar select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.9rem; }
+        .toolbar label { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--text-dim); cursor: pointer; }
+        .toolbar-stats { font-size: 0.8rem; color: var(--text-dim); margin-left: auto; }
+
+        /* Stats summary → Filter tabs */
+        .filter-tabs {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .filter-tab {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            flex: 1; padding: 8px 12px; border-radius: var(--radius-sm);
+            border: 1px solid var(--border); background: var(--bg-card);
+            color: var(--text-dim); font-size: 0.9rem; cursor: pointer;
+            transition: all 0.2s; font-weight: 500;
+        }
+        .filter-tab:hover { border-color: var(--accent); color: var(--text); }
+        .filter-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(22,199,154,0.08); }
+        .filter-tab.active.zh { border-color: var(--accent); color: var(--accent); background: rgba(22,199,154,0.08); }
+        .filter-tab.active.en { border-color: var(--color-blue); color: var(--color-blue); background: rgba(52,152,219,0.08); }
+        .filter-tab.active.missing { border-color: var(--danger); color: var(--danger); background: rgba(231,76,60,0.08); }
+        .filter-tab:disabled { opacity: 0.35; cursor: not-allowed; }
+        .filter-tab:disabled:hover { border-color: var(--border); color: var(--text-dim); }
+        .filter-tab-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 24px; height: 22px; border-radius: 11px;
+            font-size: 0.8rem; font-weight: 700; padding: 0 6px;
+            background: rgba(255,255,255,0.06); color: var(--text-dim);
+        }
+        .filter-tab.active .filter-tab-count { background: rgba(22,199,154,0.15); color: var(--accent); }
+        .filter-tab.active.en .filter-tab-count { background: rgba(52,152,219,0.15); color: var(--color-blue); }
+        .filter-tab.active.missing .filter-tab-count { background: rgba(231,76,60,0.15); color: var(--danger); }
+        .filter-tab:disabled .filter-tab-count { opacity: 0.5; }
+
+        /* Subtitle status badges */
+.lang-badge.none { color: var(--danger); }
+.lang-badge.missing { color: var(--color-gray); }
+
+        /* Season tabs */
+        .season-tabs { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+        .season-tab { padding: 6px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; cursor: pointer; background: var(--bg); border: 1px solid var(--border); color: var(--text-dim); white-space: nowrap; transition: all 0.15s; }
+        .season-tab:hover { border-color: var(--accent); color: var(--text); }
+        .season-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+        .season-tab .tab-count { font-weight: 400; opacity: 0.7; margin-left: 4px; font-size: 0.72rem; }
+
+        /* Episode dimmed */
+        .episode-item.dimmed { opacity: 0.5; }
+        .episode-item.dimmed .btn { pointer-events: none; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .overlay.open { display: block; }
+            .main-wrap { margin-left: 0; }
+            .top-bar { display: flex; }
+            #page-content { padding: 16px; }
+            .movie-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+            .movie-info { padding: 8px; }
+            .form-row { flex-direction: column; align-items: flex-start; }
+            .form-label { width: auto; min-width: 0; }
+            .form-input, .form-select, .form-textarea { width: 100%; min-width: 0; }
+            .episode-item { flex-wrap: wrap; }
+            .episode-actions { width: 100%; margin-top: 6px; }
+            .entry-item { flex-wrap: wrap; }
+            .entry-actions { width: 100%; margin-top: 6px; justify-content: flex-end; }
+            .log-table { font-size: 0.8rem; display: block; overflow-x: auto; }
+            .log-table th, .log-table td { padding: 8px; }
+            .log-table .col-duration { display: none; }
+            .filter-tabs { gap: 6px; flex-wrap: wrap; }
+            .filter-tab { padding: 6px 8px; font-size: 0.8rem; }
+            .filter-tab-count { min-width: 20px; height: 18px; font-size: 0.72rem; }
+            .toolbar { gap: 8px; }
+            .toolbar select { font-size: 0.8rem; padding: 4px 8px; }
+            .series-meta { flex-wrap: wrap; }
+            .page-title { font-size: 1.2rem; }
+            .toast { max-width: 280px; font-size: 0.8rem; padding: 10px 14px; }
+            .toast-container { bottom: 8px; left: 8px; right: 8px; transform: none; }
+            .queue-item { flex-wrap: wrap; gap: 8px; }
+            .queue-path { min-width: 0; }
+            .queue-card-list { display: flex; flex-direction: column; gap: 12px; }
+            .queue-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 12px;
+                overflow: hidden;
+            }
+            .queue-card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+            .queue-card-filename {
+                flex: 1;
+                font-size: 0.9rem;
+                font-weight: 500;
+                word-break: break-all;
+                min-width: 0;
+                color: var(--text);
+            }
+            .queue-card-meta {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                margin-bottom: 8px;
+            }
+            .queue-card-meta-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.85rem;
+            }
+            .queue-card-label {
+                color: var(--text-dim);
+                font-size: 0.8rem;
+                min-width: 50px;
+                flex-shrink: 0;
+            }
+            .queue-card-value {
+                color: var(--text);
+                flex: 1;
+                word-break: break-word;
+            }
+            .queue-card-detail-toggle {
+                font-size: 0.85rem;
+                color: var(--text-dim);
+                cursor: pointer;
+                padding: 6px 0;
+                margin-top: 4px;
+                border-top: 1px solid var(--border);
+                transition: color 0.2s;
+                user-select: none;
+            }
+            .queue-card-detail-toggle:hover {
+                color: var(--accent);
+            }
+            .queue-card-detail {
+                margin-top: 8px;
+                padding-top: 8px;
+            }
+            .queue-card-detail table {
+                width: 100%;
+                font-size: 0.85rem;
+                border-collapse: collapse;
+            }
+            .queue-card-detail th,
+            .queue-card-detail td {
+                padding: 4px 6px;
+                text-align: left;
+                border-bottom: 1px solid var(--border);
+            }
+            .queue-card-detail th {
+                color: var(--text-dim);
+                font-weight: 500;
+            }
+            .queue-card-detail tr:last-child td {
+                border-bottom: none;
+            }
+            .queue-card-progress {
+                margin-top: 6px;
+            }
+            .queue-card-progress .progress-bar {
+                margin-top: 4px;
+            }
+            .queue-card .log-status { font-size: 0.8rem; padding: 2px 8px; }
+            .queue-card .spinner { width: 14px; height: 14px; border-width: 2px; }
+            .card { padding: 12px; margin-bottom: 12px; }
+            .card-title { font-size: 0.95rem; margin-bottom: 12px; padding-bottom: 6px; }
+            .form-label { width: 100%; font-weight: 600; font-size: 0.95rem; color: var(--text); margin-bottom: 2px; }
+            .form-label:empty { display: none; }
+            .form-row { gap: 8px; margin-bottom: 16px; }
+            .form-textarea { min-height: 100px; }
+            .pm-row { flex-direction: column !important; align-items: stretch !important; gap: 4px !important; margin-bottom: 8px !important; }
+            .pm-row .form-input { width: 100% !important; }
+            .pm-row > span:nth-child(2) { text-align: center; padding: 2px 0; color: var(--text-dim); }
+            .pm-row > span:last-child { align-self: flex-end; padding: 4px 0; }
+            #prov-checkboxes { gap: 8px !important; }
+            #prov-checkboxes label { font-size: 0.85rem; }
+            .info-tip { display: inline-flex; align-items: center; cursor: pointer; }
+            .info-tip::after { content: attr(data-tip); display: inline; position: static; transform: none; left: auto; bottom: auto; opacity: 1; white-space: normal; font-size: 0.75rem; color: var(--text-dim); background: none; border: none; padding: 0 0 0 4px; box-shadow: none; margin: 0; pointer-events: auto; max-width: 100%; word-break: break-word; }
+            .info-tip.active { color: var(--accent); }
+            .webhook-urls code { word-break: break-all; display: inline-block; max-width: 100%; line-height: 1.6; }
+            .btn-save { width: 100%; justify-content: center; }
+            .form-hint { word-break: break-word; line-height: 1.6; }
+        }
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; justify-content:center; align-items:center; }
+        .modal-overlay.show { display:flex; }
+        .modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px 28px 20px; max-width:360px; width:90%; }
+        .modal-msg { font-size:0.95rem; margin-bottom:20px; line-height:1.5; }
+        .modal-actions { display:flex; justify-content:flex-end; gap:10px; }
+        .modal-btn { padding:6px 18px; border-radius:var(--radius-sm); border:none; cursor:pointer; font-size:0.9rem; }
+        .modal-cancel { background:transparent; color:var(--text-dim); border:1px solid var(--border); }
+        .modal-cancel:hover { color:var(--text); border-color:var(--text-dim); }
+        .modal-ok { background:var(--accent); color:var(--bg); }
+        .modal-ok:hover { background:var(--accent-hover); }
+
+        /* Search results modal */
+        .search-modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); max-width:880px; width:94%; overflow:hidden; }
+        .search-modal-header { display:flex; align-items:center; padding:16px 20px; border-bottom:1px solid var(--border); gap:12px; }
+        .search-modal-header h3 { font-size:1.05rem; margin:0; white-space:nowrap; }
+        .search-modal-video { flex:1; font-size:0.82rem; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+        .search-modal-close { background:none; border:none; color:var(--text-dim); font-size:1.3rem; cursor:pointer; padding:2px 6px; line-height:1; }
+        .search-modal-close:hover { color:var(--text); }
+        .search-modal-info { padding:8px 20px; font-size:0.82rem; color:var(--text-dim); border-bottom:1px solid var(--border); background:var(--bg-deep); }
+        .search-modal-body { max-height:62vh; overflow-y:auto; }
+        .search-results-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+        .search-results-table th { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); color:var(--text-dim); font-weight:600; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; background:var(--bg-deep); position:sticky; top:0; z-index:1; }
+        .search-results-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+        .search-results-table tbody tr:hover { background:rgba(22,199,154,0.04); }
+        .search-result-title { max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .search-result-provider { white-space:nowrap; font-size:0.82rem; }
+        .search-dl-btn { min-width:50px; }
+        .search-no-results { text-align:center; padding:48px 24px; color:var(--text-dim); }
+        .search-no-results-icon { font-size:2.5rem; margin-bottom:8px; }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box">
+            <div class="modal-msg" id="confirmMsg"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-cancel" id="confirmNo">取消</button>
+                <button class="modal-btn modal-ok" id="confirmYes">确认</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="searchModal" onclick="if(event.target===this)closeSearchModal()">
+        <div class="search-modal-box">
+            <div class="search-modal-header">
+                <h3>📝 字幕搜索</h3>
+                <span class="search-modal-video" id="searchVideoName"></span>
+                <button class="search-modal-close" onclick="closeSearchModal()">✕</button>
+            </div>
+            <div class="search-modal-info" id="searchInfo"></div>
+            <div class="search-modal-body" id="searchResults"></div>
+        </div>
+    </div>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1><img src="/favicon-dark.ico" class="sidebar-logo" alt="logo"> sub.CN</h1>
+            <p>Subtitle Downloader</p>
+        </div>
+        <nav class="sidebar-nav" id="sidebar-nav">
+            <button class="nav-item active" data-page="movies" onclick="navigateTo('movies')">
+                <span class="nav-icon">🎬</span> 电影
+            </button>
+            <button class="nav-item" data-page="series" onclick="navigateTo('series')">
+                <span class="nav-icon">📺</span> 电视剧
+            </button>
+            <button class="nav-item" data-page="queue" onclick="navigateTo('queue')">
+                <span class="nav-icon">⬇️</span> 下载队列
+            </button>
+            <button class="nav-item" data-page="browse" onclick="navigateTo('browse')">
+                <span class="nav-icon">📁</span> 目录浏览
+            </button>
+            <button class="nav-item" data-page="logs" onclick="navigateTo('logs')">
+                <span class="nav-icon">📋</span> 运行日志
+            </button>
+            <button class="nav-item" data-page="translate-config" onclick="navigateTo('translate-config')">
+                <span class="nav-icon">🌐</span> 翻译设置
+            </button>
+            <button class="nav-item" data-page="config" onclick="navigateTo('config')">
+                <span class="nav-icon">⚙️</span> 配置中心
+            </button>
+        </nav>
+    </div>
+    <div class="main-wrap">
+        <div class="top-bar">
+            <button class="hamburger" onclick="toggleSidebar()">☰</button>
+            <span class="top-bar-title" id="top-bar-title">sub.CN</span>
+        </div>
+        <div id="page-content">
+            <div class="empty-state">
+                <div class="empty-state-icon"><span class="spinner" style="width:32px;height:32px;border-width:3px"></span></div>
+                <p>加载中...</p>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+    var _config = {};
+    var _currentPage = 'movies';
+    var _browsePath = '';
+    var _movieSubtitleMap = {};
+    var _subtitle_status_cache = {};
+    var _searchBtnRef = null;
+    var _seriesSeasonTab = {};
+    var _seriesDataCache = [];
+
+    var PAGE_TITLES = {
+        'movies': '电影',
+        'series': '电视剧',
+        'queue': '下载队列',
+        'browse': '目录浏览',
+        'logs': '运行日志',
+        'translate-config': '翻译设置',
+        'config': '配置中心'
+    };
+
+    fetch('/api/settings').then(function(r) { return r.json(); }).then(function(s) {
+        _config = s;
+        navigateTo('movies');
+    }).catch(function() {
+        navigateTo('movies');
+    });
+
+    function esc(str) {
+        if (typeof str !== 'string') return String(str);
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        var k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+    /* Unified button loading state */
+    function btnLoading(btn, text) {
+        btn._origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.classList.add('btn-loading');
+        btn.innerHTML = '<span class="spinner" style="margin-right:4px"></span>' + (text || '处理中...');
+    }
+    function btnReset(btn) {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+        btn.innerHTML = btn._origHtml || btn.textContent;
+        delete btn._origHtml;
+    }
+
+    function toast(msg, type) {
+        type = type || 'info';
+        var container = document.getElementById('toast-container');
+        var el = document.createElement('div');
+        el.className = 'toast ' + type;
+        var text = document.createElement('span');
+        text.textContent = msg;
+        el.appendChild(text);
+        var dismiss = document.createElement('button');
+        dismiss.className = 'toast-dismiss';
+        dismiss.textContent = '×';
+        dismiss.onclick = function() { removeToast(el); };
+        el.appendChild(dismiss);
+        container.appendChild(el);
+        setTimeout(function() { removeToast(el); }, 4000);
+    }
+    function removeToast(el) {
+        if (!el.parentElement) return;
+        el.classList.add('removing');
+        setTimeout(function() { el.remove(); }, 300);
+    }
+
+    function toggleSidebar() {
+        var sb = document.getElementById('sidebar');
+        var ov = document.getElementById('overlay');
+        sb.classList.toggle('open');
+        ov.classList.toggle('open');
+    }
+
+    function navigateTo(page) {
+        _currentPage = page;
+        clearInterval(_queuePollTimer);
+        document.querySelectorAll('.nav-item').forEach(function(el) {
+            el.classList.toggle('active', el.dataset.page === page);
+        });
+        var sb = document.getElementById('sidebar');
+        var ov = document.getElementById('overlay');
+        sb.classList.remove('open');
+        ov.classList.remove('open');
+        document.getElementById('top-bar-title').textContent = PAGE_TITLES[page] || '';
+
+        switch (page) {
+            case 'movies': showMovies(); break;
+            case 'series': showSeries(); break;
+            case 'queue': showQueue(); break;
+            case 'browse': showBrowse(); break;
+            case 'logs': showLogs(); break;
+            case 'translate-config': showTranslateConfig(); break;
+            case 'config': showConfig(); break;
+            default: showMovies();
+        }
+    }
+
+    function setLoading(title) {
+        document.getElementById('page-content').innerHTML =
+            '<div class="page-title">' + esc(title) + '</div>' +
+            '<div class="empty-state"><span class="spinner" style="width:32px;height:32px;border-width:3px"></span><p style="margin-top:12px">加载中...</p></div>';
+    }
+
+    function enqueueFromBtn(btn) {
+        if (btn.disabled) return;
+        btnLoading(btn, '下载中');
+        var path = btn.dataset.path;
+        var movieId = btn.dataset.movieId || null;
+        var episodeId = btn.dataset.episodeId || null;
+        var lang = _config.auto_download_lang || 'zho_chs';
+        var maxCount = _config.max_download_count || 1;
+        var payload = { video_path: path, lang: lang, max_count: maxCount };
+        if (movieId) payload.movie_id = parseInt(movieId);
+        if (episodeId) payload.episode_id = parseInt(episodeId);
+        fetch('/api/download/top', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.status === 'enqueued' || data.status === 'success' || data.status === 'queued') {
+                toast('已加入下载队列: ' + path.split('/').pop(), 'success');
+                btn.innerHTML = '已入队';
+                btn.disabled = false;
+                setTimeout(function() { btnReset(btn); }, 2000);
+            } else if (data.status === 'skipped') {
+                btnReset(btn);
+                showConfirm('已有中文字幕，是否重新查找？', function() {
+                    payload.force = true;
+                    btnLoading(btn, '下载中');
+                    fetch('/api/download/top', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).then(function(r) { return r.json(); }).then(function(d2) {
+                        if (d2.status === 'enqueued' || d2.status === 'success' || d2.status === 'queued') {
+                            toast('已加入下载队列: ' + path.split('/').pop(), 'success');
+                            btn.innerHTML = '已入队';
+                        } else {
+                            toast('下载失败: ' + (d2.error || '未知错误'), 'error');
+                            btn.innerHTML = '失败';
+                        }
+                    }).catch(function(err) {
+                        toast('请求失败: ' + err.message, 'error');
+                        btn.innerHTML = '失败';
+                    }).finally(function() {
+                        btn.disabled = false;
+                        setTimeout(function() { btnReset(btn); }, 2000);
+                    });
+                });
+            } else {
+                toast('下载失败: ' + (data.error || '未知错误'), 'error');
+                btn.innerHTML = '失败';
+                btn.disabled = false;
+                setTimeout(function() { btnReset(btn); }, 2000);
+            }
+        }).catch(function(err) {
+            toast('请求失败: ' + err.message, 'error');
+            btn.innerHTML = '失败';
+            btn.disabled = false;
+            setTimeout(function() { btnReset(btn); }, 2000);
+        });
+    }
+
+    function enqueue(path, movieId, episodeId) {
+        var lang = _config.auto_download_lang || 'zho_chs';
+        var maxCount = _config.max_download_count || 1;
+        var payload = { video_path: path, lang: lang, max_count: maxCount };
+        if (movieId) payload.movie_id = parseInt(movieId);
+        if (episodeId) payload.episode_id = parseInt(episodeId);
+        fetch('/api/download/top', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.status === 'enqueued' || data.status === 'success' || data.status === 'queued') {
+                toast('已加入下载队列: ' + path.split('/').pop(), 'success');
+            } else {
+                toast('下载失败: ' + (data.error || '未知错误'), 'error');
+            }
+        }).catch(function(err) {
+            toast('请求失败: ' + err.message, 'error');
+        });
+    }
+
+    var _searchResultsCache = [];
+    var _searchBtnRef = null;
+
+    var _langDisplayMap = {
+        'zho_chs': '简中', 'zho_cht': '繁中', 'chi': '中', 'chs': '简中', 'cht': '繁中',
+        'eng': 'EN', 'en': 'EN', 'zho_chs+eng': '中英', 'zho_cht+eng': '中英'
+    };
+    var _providerDisplayMap = {
+        'zimuku': '字幕库', 'subhd': 'SubHD', 'assrt': 'ASSRT', 'opensubtitles': 'OpenSubs'
+    };
+
+    function _langBadgeHtml(lang) {
+        if (!lang) return '<span class="lang-badge missing">?</span>';
+        var isZh = lang.indexOf('zho') === 0 || lang === 'chi' || lang === 'chs' || lang === 'cht';
+        var isEn = lang === 'eng' || lang === 'en';
+        var isBil = lang.indexOf('+eng') > 0;
+        var cls = isBil ? 'zhen' : isZh ? 'zh' : isEn ? 'en' : 'missing';
+        var text = _langDisplayMap[lang] || lang;
+        return '<span class="lang-badge ' + cls + '">' + esc(text) + '</span>';
+    }
+
+    function showSubtitleSearch(btn) {
+        if (btn.disabled) return;
+        _searchBtnRef = btn;
+        var path = btn.dataset.path || '';
+        if (!path) { toast('未找到视频路径', 'error'); return; }
+
+        var payload = { video_path: path };
+        if (btn.dataset.title) payload.title = btn.dataset.title;
+        if (btn.dataset.year) payload.year = parseInt(btn.dataset.year) || btn.dataset.year;
+        if (btn.dataset.imdbId) payload.imdb_id = btn.dataset.imdbId;
+        if (btn.dataset.sceneName) payload.scene_name = btn.dataset.sceneName;
+        if (btn.dataset.season) payload.season = parseInt(btn.dataset.season);
+        if (btn.dataset.episodeNum) payload.episode = parseInt(btn.dataset.episodeNum);
+
+        var modal = document.getElementById('searchModal');
+        var videoName = path.split('/').pop();
+        document.getElementById('searchVideoName').textContent = videoName;
+        document.getElementById('searchInfo').textContent = '搜索中...';
+        document.getElementById('searchResults').innerHTML = '<div style="text-align:center;padding:48px 24px"><span class="spinner" style="width:32px;height:32px;border-width:3px"></span><p style="margin-top:12px;color:var(--text-dim)">正在搜索所有引擎...</p></div>';
+        modal.classList.add('show');
+
+        btnLoading(btn, '搜索中');
+        console.log('[subtitle-search] payload:', payload);
+
+        var apiUrl = (window.location.origin || '') + '/api/search/video';
+        if (!apiUrl || apiUrl.indexOf('null') === 0) {
+            apiUrl = '/api/search/video';
+        }
+        console.log('[subtitle-search] URL:', apiUrl);
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(function(r) {
+            if (!r.ok) {
+                return r.text().then(function(txt) {
+                    throw new Error('HTTP ' + r.status + ': ' + txt.substring(0, 200));
+                });
+            }
+            return r.json();
+        }).then(function(data) {
+            btnReset(btn);
+            _searchResultsCache = data.results || [];
+            var searchId = data.search_id || '';
+            var keyword = data.keyword || '';
+            var error = data.error || '';
+
+            if (error) {
+                document.getElementById('searchInfo').textContent = '搜索出错: ' + error;
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('searchInfo').textContent = '关键词: ' + keyword + '  |  共 ' + _searchResultsCache.length + ' 条结果';
+
+            if (!_searchResultsCache.length) {
+                document.getElementById('searchResults').innerHTML = '<div class="search-no-results"><div class="search-no-results-icon">🔍</div><p>未找到字幕</p></div>';
+                return;
+            }
+
+            var movieId = btn.dataset.movieId || '';
+            var episodeId = btn.dataset.episodeId || '';
+            var html = '<table class="search-results-table"><thead><tr>';
+            html += '<th>#</th><th>字幕名</th><th>引擎</th><th>语言</th><th>匹配度</th><th></th>';
+            html += '</tr></thead><tbody>';
+            _searchResultsCache.forEach(function(r, i) {
+                var scorePct = r.score_pct || 0;
+                var scoreStyle = '';
+                if (scorePct >= 72) scoreStyle = 'color:var(--accent);font-weight:bold;';
+                else if (scorePct >= 50) scoreStyle = 'color:var(--warning);font-weight:bold;';
+                else if (scorePct > 0) scoreStyle = 'color:var(--danger);font-weight:bold;';
+
+                var provText = _providerDisplayMap[r.provider] || r.provider || '—';
+                html += '<tr>';
+                html += '<td style="color:var(--text-dim)">' + (i + 1) + '</td>';
+                html += '<td class="search-result-title" title="' + esc(r.title || '') + '">' + esc(r.title || '—') + '</td>';
+                html += '<td class="search-result-provider">' + esc(provText) + '</td>';
+                html += '<td>' + _langBadgeHtml(r.language) + '</td>';
+                html += '<td style="' + scoreStyle + '">' + (scorePct > 0 ? scorePct + '%' : '—') + '</td>';
+                html += '<td><button class="btn btn-primary btn-sm search-dl-btn" data-index="' + i + '" data-search-id="' + esc(searchId) + '" data-path="' + esc(path) + '" data-movie-id="' + esc(movieId) + '" data-episode-id="' + esc(episodeId) + '" onclick="downloadSelectedResult(this)">下载</button></td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('searchResults').innerHTML = html;
+        }).catch(function(err) {
+            btnReset(btn);
+            console.error('[subtitle-search] error:', err);
+            document.getElementById('searchInfo').textContent = '搜索失败: ' + err.message;
+            document.getElementById('searchResults').innerHTML = '';
+        });
+    }
+
+    function downloadSelectedResult(btn) {
+        if (btn.disabled) return;
+        var index = parseInt(btn.dataset.index);
+        var searchId = btn.dataset.searchId || '';
+        if (!searchId) { toast('搜索结果已过期，请重新搜索', 'error'); closeSearchModal(); return; }
+
+        btnLoading(btn, '下载中');
+
+        var payload = {
+            video_path: btn.dataset.path,
+            lang: _config.auto_download_lang || 'zho_chs',
+            search_id: searchId,
+            result_index: index
+        };
+        if (btn.dataset.movieId) payload.movie_id = parseInt(btn.dataset.movieId);
+        if (btn.dataset.episodeId) payload.episode_id = parseInt(btn.dataset.episodeId);
+
+        var dlUrl = (window.location.origin || '') + '/api/download/selected';
+        if (!dlUrl || dlUrl.indexOf('null') === 0) {
+            dlUrl = '/api/download/selected';
+        }
+        fetch(dlUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(function(r) {
+            if (!r.ok) {
+                return r.text().then(function(txt) {
+                    throw new Error('HTTP ' + r.status + ': ' + txt.substring(0, 200));
+                });
+            }
+            return r.json();
+        }).then(function(data) {
+            if (data.status === 'success') {
+                btn.innerHTML = '✓';
+                btn.disabled = true;
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline');
+                toast('字幕下载成功', 'success');
+                var newSt = data.subtitle_status || 'zh';
+                var mid = _searchBtnRef ? _searchBtnRef.dataset.movieId : '';
+                var eid = _searchBtnRef ? _searchBtnRef.dataset.episodeId : '';
+                if (mid) {
+                    var found = _moviesCache.find(function(m) { return m.id == mid; });
+                    if (found) found.subtitleStatus = newSt;
+                    _movieSubtitleMap[mid] = newSt;
+                }
+                if (eid) {
+                    _subtitle_status_cache['ep_' + eid] = newSt;
+                }
+            } else {
+                btnReset(btn);
+                toast('下载失败: ' + (data.error || '未知错误'), 'error');
+            }
+        }).catch(function(err) {
+            btnReset(btn);
+            toast('下载失败: ' + err.message, 'error');
+        });
+    }
+
+    function closeSearchModal() {
+        document.getElementById('searchModal').classList.remove('show');
+        _searchResultsCache = [];
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('searchModal').classList.contains('show')) closeSearchModal();
+    });
+
+    function showSubTranslate(btn, filePath) {
+        closeSubPickers();
+        fetch('/api/video/subtitles?path=' + encodeURIComponent(filePath)).then(function(r) { return r.json(); }).then(function(data) {
+            var subs = data.subtitles || data;
+            if (!subs || subs.length === 0) {
+                toast('未找到字幕文件', 'info');
+                return;
+            }
+            var rect = btn.getBoundingClientRect();
+            var picker = document.createElement('div');
+            picker.className = 'sub-picker';
+            picker.style.position = 'fixed';
+            picker.style.right = (window.innerWidth - rect.right) + 'px';
+            picker.style.top = (rect.top - 8) + 'px';
+            picker.style.transform = 'translateY(-100%)';
+            var html = '';
+            subs.forEach(function(sub) {
+                html += '<div class="sub-picker-item">';
+                html += '<span class="sub-picker-name">' + esc(sub.filename || sub.name || sub.path) + '</span>';
+                html += '<button class="btn btn-primary btn-sm" onclick="startTranslate(this,\'' + esc(filePath).replace(/'/g, "\\'") + '\',\'' + esc(sub.path).replace(/'/g, "\\'") + '\')">翻译</button>';
+                html += '</div>';
+            });
+            picker.innerHTML = html;
+            document.body.appendChild(picker);
+
+            var pRect = picker.getBoundingClientRect();
+            if (pRect.top < 0) {
+                picker.style.top = (rect.bottom + 8) + 'px';
+                picker.style.transform = 'none';
+            }
+        }).catch(function(err) {
+            toast('获取字幕列表失败', 'error');
+        });
+    }
+
+    function startTranslate(btn, videoPath, subtitlePath) {
+        btnLoading(btn, '翻译中...');
+        fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ video_path: videoPath, subtitle_path: subtitlePath })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.status === 'queued' || data.status === 'enqueued' || data.status === 'started') {
+                toast('翻译任务已加入队列', 'success');
+            } else {
+                toast('翻译失败: ' + (data.error || data.detail || '未知错误'), 'error');
+            }
+        }).catch(function(err) {
+            toast('翻译请求失败: ' + err.message, 'error');
+        }).finally(function() {
+            closeSubPickers();
+        });
+    }
+
+    function closeSubPickers() {
+        document.querySelectorAll('.sub-picker').forEach(function(el) { el.remove(); });
+    }
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.sub-picker') && !e.target.closest('[onclick*="showSubTranslate"]')) {
+            closeSubPickers();
+        }
+    });
+
+    var _moviesCache = [];
+    var _movieSortBy = 'date_desc';
+    var _movieSubFilter = 'all';
+
+    function showMovies() {
+        setLoading('电影');
+        fetch('/api/movies?hide_deleted=false').then(function(r) { return r.json(); }).then(function(data) {
+            _moviesCache = data.movies || data || [];
+            _movieSubtitleMap = {};
+            renderMovies();
+        }).catch(function(err) {
+            document.getElementById('page-content').innerHTML =
+                '<div class="page-title">电影</div><div class="empty-state"><div class="empty-state-icon">❌</div><p>无法加载电影列表，请先刷新数据</p></div>';
+        });
+    }
+
+    function refreshMovies(btn) {
+        btnLoading(btn, '刷新中...');
+        fetch('/api/refresh', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({target: 'movies'})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            btnReset(btn);
+            var msg = '电影数据已刷新';
+            if (data.new_movies > 0) msg += '，新增 ' + data.new_movies + ' 部';
+            toast(msg, 'success');
+            showMovies();
+        }).catch(function(err) {
+            btnReset(btn);
+            toast('刷新失败: ' + err.message, 'error');
+        });
+    }
+
+    function renderMovies() {
+        var sortBy = _movieSortBy;
+        var subFilter = _movieSubFilter;
+        var movies = _moviesCache.slice().filter(function(m) { return m.hasFile; });
+        if (subFilter === 'zh') {
+            movies = movies.filter(function(m) {
+                var s = _movieSubtitleMap[m.id] !== undefined ? _movieSubtitleMap[m.id] : m.subtitleStatus;
+                return s === 'zh';
+            });
+        } else if (subFilter === 'en') {
+            movies = movies.filter(function(m) {
+                var s = _movieSubtitleMap[m.id] !== undefined ? _movieSubtitleMap[m.id] : m.subtitleStatus;
+                return s === 'en';
+            });
+        } else if (subFilter === 'no_sub') {
+            movies = movies.filter(function(m) {
+                var s = _movieSubtitleMap[m.id] !== undefined ? _movieSubtitleMap[m.id] : m.subtitleStatus;
+                return s !== 'zh' && s !== 'en';
+            });
+        }
+        if (sortBy === 'date_desc') {
+            movies.sort(function(a, b) { return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0); });
+        } else if (sortBy === 'date_asc') {
+            movies.sort(function(a, b) { return new Date(a.dateAdded || 0) - new Date(b.dateAdded || 0); });
+        } else if (sortBy === 'release_desc') {
+            movies.sort(function(a, b) { return (b.releaseDate || '').localeCompare(a.releaseDate || ''); });
+        } else if (sortBy === 'release_asc') {
+            movies.sort(function(a, b) { return (a.releaseDate || '').localeCompare(b.releaseDate || ''); });
+        }
+
+        // Count only movies with files
+        var withFile = _moviesCache.filter(function(m) { return m.hasFile; });
+        var zhCount = 0, enOnlyCount = 0, noSubCount = 0;
+        withFile.forEach(function(m) {
+            var s = _movieSubtitleMap[m.id] !== undefined ? _movieSubtitleMap[m.id] : m.subtitleStatus;
+            if (s === 'zh') zhCount++;
+            else if (s === 'en') enOnlyCount++;
+            else noSubCount++;
+        });
+        var totalCount = withFile.length;
+
+        var html = '<div class="page-title" style="display:flex;align-items:center;justify-content:space-between">电影<div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" id="movie-refresh-btn" onclick="refreshMovies(this)">⟳ 刷新</button><button class="btn btn-primary btn-sm" id="movie-sync-btn" onclick="syncMovieSubtitles(this)">同步字幕</button><select id="movie-sort" onchange="_movieSortBy=this.value;renderMovies()" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:0.9rem">';
+        html += '<option value="date_desc"' + (sortBy === 'date_desc' ? ' selected' : '') + '>添加时间 ↓</option>';
+        html += '<option value="date_asc"' + (sortBy === 'date_asc' ? ' selected' : '') + '>添加时间 ↑</option>';
+        html += '<option value="release_desc"' + (sortBy === 'release_desc' ? ' selected' : '') + '>上映日期 ↓</option>';
+        html += '<option value="release_asc"' + (sortBy === 'release_asc' ? ' selected' : '') + '>上映日期 ↑</option>';
+        html += '</select></div></div>';
+
+        // Filter tabs
+        html += '<div class="filter-tabs">';
+        html += '<button class="filter-tab' + (subFilter === 'all' ? ' active' : '') + '" onclick="_movieSubFilter=\'all\';renderMovies()"><span class="filter-tab-count">' + totalCount + '</span>所有电影</button>';
+        html += '<button class="filter-tab zh' + (subFilter === 'zh' ? ' active' : '') + '" onclick="_movieSubFilter=\'zh\';renderMovies()"' + (zhCount === 0 ? ' disabled' : '') + '><span class="filter-tab-count">' + zhCount + '</span>中文字幕</button>';
+        html += '<button class="filter-tab en' + (subFilter === 'en' ? ' active' : '') + '" onclick="_movieSubFilter=\'en\';renderMovies()"' + (enOnlyCount === 0 ? ' disabled' : '') + '><span class="filter-tab-count">' + enOnlyCount + '</span>英文字幕</button>';
+        html += '<button class="filter-tab missing' + (subFilter === 'no_sub' ? ' active' : '') + '" onclick="_movieSubFilter=\'no_sub\';renderMovies()"' + (noSubCount === 0 ? ' disabled' : '') + '><span class="filter-tab-count">' + noSubCount + '</span>无字幕</button>';
+        html += '</div>';
+
+        if (!movies.length) {
+            html += '<div class="empty-state"><div class="empty-state-icon">🎬</div><p>暂无电影数据，请检查 Radarr 配置</p></div>';
+        } else {
+            html += '<div class="movie-grid">';
+            movies.forEach(function(m) {
+                var fp = m.filePath || m.path || '';
+                var subStatus = _movieSubtitleMap[m.id] !== undefined ? _movieSubtitleMap[m.id] : m.subtitleStatus;
+                var badgeClass = 'missing';
+                var badgeText = '—';
+                if (subStatus === 'zh') { badgeClass = 'zh'; badgeText = '中'; }
+                else if (subStatus === 'en') { badgeClass = 'en'; badgeText = 'EN'; }
+                else if (subStatus === 'none') { badgeClass = 'none'; badgeText = '无'; }
+                else if (subStatus === null || subStatus === 'no_file') { badgeClass = 'missing'; badgeText = '—'; }
+                html += '<div class="movie-card">';
+                if (m.poster) {
+                    html += '<div class="movie-poster"><img src="' + esc(m.poster) + '" onerror="this.parentElement.innerHTML=\'🎬\'"></div>';
+                } else {
+                    html += '<div class="movie-poster">🎬</div>';
+                }
+                html += '<div class="movie-info">';
+                html += '<div class="movie-title"><span class="movie-title-text">' + esc(m.title || m.originalTitle || '未知') + '</span><span class="lang-badge ' + badgeClass + '">' + badgeText + '</span></div>';
+                html += '<div class="movie-meta">' + esc(m.year || '') + (fp ? ' · ' + esc(fp.split('/').pop()) : '') + '</div>';
+                html += '<div class="movie-actions">';
+                if (fp) {
+                    html += '<button class="btn btn-primary btn-sm" data-path="' + esc(fp) + '" data-movie-id="' + (m.id || '') + '" onclick="enqueueFromBtn(this)">自动</button>';
+                    html += '<button class="btn btn-outline btn-sm" data-path="' + esc(fp) + '" data-movie-id="' + (m.id || '') + '" data-title="' + esc(m.title || '') + '" data-year="' + (m.year || '') + '" data-imdb-id="' + esc(m.imdbId || '') + '" data-scene-name="' + esc(m.sceneName || '') + '" onclick="showSubtitleSearch(this)">手动</button>';
+                    html += '<button class="btn btn-outline btn-sm" data-path="' + esc(fp) + '" onclick="showSubTranslate(this,this.dataset.path)">翻译</button>';
+                }
+                html += '</div></div></div>';
+            });
+            html += '</div>';
+        }
+        document.getElementById('page-content').innerHTML = html;
+    }
+
+    function syncMovieSubtitles(btn) {
+        btnLoading(btn, '同步中...');
+        fetch('/api/sync-subtitles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: 'movies' })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            btnReset(btn);
+            toast('字幕同步完成，共 ' + (data.total || 0) + ' 项无字幕', 'success');
+            showMovies();
+        }).catch(function(err) {
+            btnReset(btn);
+            toast('同步失败: ' + err.message, 'error');
+        });
+    }
+
+    function syncSeriesSubtitles(btn) {
+        btnLoading(btn, '同步中...');
+        fetch('/api/sync-subtitles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target: 'episodes' })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            btnReset(btn);
+            toast('字幕同步完成，共 ' + (data.total || 0) + ' 项无字幕', 'success');
+            showSeries();
+        }).catch(function(err) {
+            btnReset(btn);
+            toast('同步失败: ' + err.message, 'error');
+        });
+    }
+
+    function refreshSeries(btn) {
+        btnLoading(btn, '刷新中...');
+        fetch('/api/refresh', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({target: 'episodes'})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            btnReset(btn);
+            var msg = '电视剧数据已刷新';
+            if (data.new_episodes > 0) msg += '，新增 ' + data.new_episodes + ' 集';
+            toast(msg, 'success');
+            showSeries();
+        }).catch(function(err) {
+            btnReset(btn);
+            toast('刷新失败: ' + err.message, 'error');
+        });
+    }
+
+    function showSeries() {
+        setLoading('电视剧');
+        fetch('/api/series').then(function(r) { return r.json(); }).then(function(data) {
+            var series = data.series || data || [];
+            _seriesDataCache = series;
+            var html = '<div class="page-title" style="display:flex;align-items:center;justify-content:space-between">电视剧<div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" id="series-refresh-btn" onclick="refreshSeries(this)">⟳ 刷新</button><button class="btn btn-primary btn-sm" id="series-sync-btn" onclick="syncSeriesSubtitles(this)">同步字幕</button></div></div>';
+            if (!series.length) {
+                html += '<div class="empty-state"><div class="empty-state-icon">📺</div><p>暂无电视剧数据，请先刷新数据</p></div>';
+            } else {
+                html += '<div class="series-list">';
+                series.forEach(function(s) {
+                    var epCount = s.episodeCount != null ? s.episodeCount : (s.statistics ? s.statistics.episodeCount : 0);
+                    var seasonBadges = '';
+                    if (s.seasons && s.seasons.length) {
+                        s.seasons.forEach(function(season) {
+                            if (season.episodeFileCount > 0) {
+                                seasonBadges += '<span class="season-badge">S' + pad2(season.seasonNumber) + '</span>';
+                            }
+                        });
+                    }
+                    html += '<div class="series-item">';
+                    html += '<div class="series-header" onclick="toggleSeries(' + s.id + ',this)">';
+                    if (s.poster) {
+                        html += '<img class="series-poster" src="' + esc(s.poster) + '" onerror="this.style.display=\'none\'">';
+                    }
+                    html += '<span class="series-expand" id="expand-' + s.id + '">▶</span>';
+                    html += '<span class="series-title">' + esc(s.title || s.originalTitle || '未知') + '</span>';
+                    var fileCount = s.episodeFileCount != null ? s.episodeFileCount : 0;
+                    html += '<span class="series-meta">' + esc(s.year || '') + ' · ' + fileCount + '/' + epCount + ' 集' + (seasonBadges ? ' ' + seasonBadges : '') + '</span>';
+                    html += '</div>';
+                    html += '<div class="episode-list" id="episodes-' + s.id + '"></div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+            document.getElementById('page-content').innerHTML = html;
+        }).catch(function(err) {
+            document.getElementById('page-content').innerHTML =
+                '<div class="page-title">电视剧</div><div class="empty-state"><div class="empty-state-icon">❌</div><p>无法加载电视剧列表</p></div>';
+        });
+    }
+
+    function toggleSeries(seriesId, headerEl) {
+        var list = document.getElementById('episodes-' + seriesId);
+        var expand = document.getElementById('expand-' + seriesId);
+        if (list.classList.contains('open')) {
+            list.classList.remove('open');
+            expand.classList.remove('open');
+            return;
+        }
+        expand.classList.add('open');
+        list.classList.add('open');
+        if (list.dataset.loaded) return;
+        list.innerHTML = '<div style="padding:12px;text-align:center"><span class="spinner"></span> 加载中...</div>';
+
+        var series = _seriesDataCache.find(function(s) { return s.id === seriesId; }) || {};
+        var seasons = series.seasons || [];
+        var seasonsWithFiles = seasons.filter(function(season) { return season.episodeFileCount > 0; });
+        if (!seasonsWithFiles.length) {
+            list.dataset.loaded = '1';
+            list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-dim)">无剧集数据</div>';
+            return;
+        }
+        list.dataset.loaded = '1';
+        var activeSeason = _seriesSeasonTab[seriesId] !== undefined ? _seriesSeasonTab[seriesId] : seasonsWithFiles[0].seasonNumber;
+        var tabsHtml = '<div class="season-tabs">';
+        seasonsWithFiles.forEach(function(season) {
+            var isActive = season.seasonNumber === activeSeason;
+            tabsHtml += '<div class="season-tab' + (isActive ? ' active' : '') + '" onclick="switchSeason(' + seriesId + ',' + season.seasonNumber + ',this)">S' + pad2(season.seasonNumber) + '<span class="tab-count">(' + season.episodeFileCount + ')</span></div>';
+        });
+        tabsHtml += '</div>';
+        tabsHtml += '<div id="season-episodes-' + seriesId + '"></div>';
+        list.innerHTML = tabsHtml;
+        loadSeasonEpisodes(seriesId, activeSeason);
+    }
+
+    function switchSeason(seriesId, seasonNumber, tabEl) {
+        _seriesSeasonTab[seriesId] = seasonNumber;
+        var container = document.getElementById('episodes-' + seriesId);
+        container.querySelectorAll('.season-tab').forEach(function(t) { t.classList.remove('active'); });
+        tabEl.classList.add('active');
+        loadSeasonEpisodes(seriesId, seasonNumber);
+    }
+
+    function loadSeasonEpisodes(seriesId, seasonNumber) {
+        var container = document.getElementById('season-episodes-' + seriesId);
+        container.innerHTML = '<div style="padding:12px;text-align:center"><span class="spinner"></span> 加载中...</div>';
+        fetch('/api/series/' + seriesId + '/episodes?season=' + seasonNumber).then(function(r) { return r.json(); }).then(function(data) {
+            var eps = data.episodes || data || [];
+            if (!eps.length) {
+                container.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-dim)">无剧集数据</div>';
+                return;
+            }
+            var epHtml = '';
+            var seriesObj = _seriesDataCache.find(function(s) { return s.id === seriesId; }) || {};
+            eps.forEach(function(ep) {
+                var epPath = ep.episodeFile_path || ep.path || '';
+                var subStatus = ep.subtitleStatus;
+                var badgeClass = 'missing';
+                var badgeText = '—';
+                if (subStatus === 'zh') { badgeClass = 'zh'; badgeText = '中'; }
+                else if (subStatus === 'en') { badgeClass = 'en'; badgeText = 'EN'; }
+                else if (subStatus === 'none') { badgeClass = 'none'; badgeText = '无'; }
+                else if (subStatus === null || subStatus === 'no_file') { badgeClass = 'missing'; badgeText = '—'; }
+                var dimmedClass = ep.hasFile === false ? ' dimmed' : '';
+                epHtml += '<div class="episode-item' + dimmedClass + '">';
+                epHtml += '<span class="episode-num">S' + pad2(ep.seasonNumber || ep.season || 0) + 'E' + pad2(ep.episodeNumber || ep.episode || 0) + '</span>';
+                epHtml += '<span class="episode-title-text">' + esc(ep.title || '') + '</span>';
+                epHtml += '<span class="lang-badge ' + badgeClass + '">' + badgeText + '</span>';
+                epHtml += '<div class="episode-actions">';
+                if (epPath) {
+                    epHtml += '<button class="btn btn-primary btn-sm" data-path="' + esc(epPath) + '" data-episode-id="' + (ep.id || '') + '" onclick="enqueueFromBtn(this)">自动</button>';
+                    epHtml += '<button class="btn btn-outline btn-sm" data-path="' + esc(epPath) + '" data-episode-id="' + (ep.id || '') + '" data-title="' + esc(seriesObj.title || '') + '" data-year="' + (seriesObj.year || '') + '" data-imdb-id="' + esc(seriesObj.imdbId || '') + '" data-scene-name="' + esc(ep.sceneName || '') + '" data-season="' + (ep.seasonNumber || '') + '" data-episode-num="' + (ep.episodeNumber || '') + '" onclick="showSubtitleSearch(this)">手动</button>';
+                    epHtml += '<button class="btn btn-outline btn-sm" data-path="' + esc(epPath) + '" onclick="showSubTranslate(this,this.dataset.path)">翻译</button>';
+                }
+                epHtml += '</div></div>';
+            });
+            container.innerHTML = epHtml;
+        }).catch(function() {
+            container.innerHTML = '<div style="padding:12px;text-align:center;color:var(--danger)">加载失败</div>';
+        });
+    }
+
+    function showQueue() {
+        refreshQueue();
+    }
+
+    var _providerStatusMap = {
+        'searching': '搜索中', 'downloading': '下载中', 'success': '成功',
+        'failed': '失败', 'error': '出错', 'no_results': '无结果',
+        'no_eligible': '不符合', 'skipped': '跳过'
+    };
+    var _providerStatusClass = {
+        'searching': 'active', 'downloading': 'active', 'success': 'done',
+        'failed': 'error', 'error': 'error', 'no_results': 'skipped',
+        'no_eligible': 'skipped', 'skipped': 'skipped'
+    };
+
+    function refreshQueue() {
+        Promise.all([
+            fetch('/api/download/status').then(function(r) { return r.json(); }).catch(function() { return { active: [], completed: [] }; }),
+            fetch('/api/translate/status').then(function(r) { return r.json(); }).catch(function() { return { active: [], completed: [] }; })
+        ]).then(function(results) {
+            var dlData = results[0];
+            var trData = results[1];
+            var dlActive = dlData.active || [];
+            var dlCompleted = (dlData.completed || []).slice(0, 30);
+            var trActive = trData.active || [];
+            var trCompleted = (trData.completed || []).slice(0, 20);
+            var isMobile = window.innerWidth <= 768;
+
+            var html = '<div class="page-title" style="display:flex;align-items:center;justify-content:space-between">下载队列<button class="btn btn-outline btn-sm" onclick="refreshQueue()">⟳ 刷新</button></div>';
+            html += '<div class="queue-section"><div class="queue-section-title">字幕下载</div>';
+            var allDl = dlActive.concat(dlCompleted);
+            if (!allDl.length) {
+                html += '<div class="empty-state" style="padding:20px"><p>暂无下载任务</p></div>';
+            } else if (isMobile) {
+                html += '<div class="queue-card-list">';
+                allDl.forEach(function(t, ti) {
+                    var fileName = (t.display_path || t.video_path || '').split('/').pop();
+                    var prs = t.provider_results || [];
+                    var timeStr = '';
+                    var ts = t.completed_at || t.started_at || t.created_at || '';
+                    if (ts) { timeStr = ts.replace('T', ' ').substring(0, 16); }
+                    var isWebhook = (t.source || '').indexOf('webhook') >= 0;
+                    var isManual = (t.source || '').indexOf('manual-search') >= 0;
+                    var modeText = isWebhook ? 'Webhook' : isManual ? '手动' : '自动';
+                    var mainSt = t.status || 'queued';
+                    var mainStText = mainSt === 'success' ? '完成' : mainSt === 'skipped' ? '跳过' : mainSt === 'failed' ? '失败' : mainSt === 'downloading' ? '下载中' : mainSt === 'queued' ? '排队中' : mainSt;
+                    var mainStClass = mainSt === 'success' ? 'done' : mainSt === 'skipped' ? 'skipped' : mainSt === 'failed' ? 'error' : 'active';
+                    var providers = prs.map(function(p){ return p.provider||'—'; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(', ');
+                    var topScore = prs.filter(function(p){ return p.score && p.status === 'success'; }).sort(function(a,b){ return b.score - a.score; })[0];
+                    var scores = topScore ? topScore.score + '%' : '';
+                    var hasDetail = prs.length > 0;
+
+                    html += '<div class="queue-card">';
+                    html += '<div class="queue-card-header">';
+                    html += '<span class="queue-card-filename" title="' + esc(fileName) + '">' + esc(fileName) + '</span>';
+                    html += '<span class="log-status ' + mainStClass + '">' + esc(mainStText) + '</span>';
+                    if (mainSt === 'queued' || mainSt === 'downloading') html += ' <span class="spinner"></span>';
+                    html += '</div>';
+                    html += '<div class="queue-card-meta">';
+                    if (timeStr) {
+                        html += '<div class="queue-card-meta-row"><span class="queue-card-label">时间</span><span class="queue-card-value">' + esc(timeStr) + '</span></div>';
+                    }
+                    if (providers) {
+                        html += '<div class="queue-card-meta-row"><span class="queue-card-label">引擎</span><span class="queue-card-value">' + esc(providers) + '</span></div>';
+                    }
+                    if (scores) {
+                        html += '<div class="queue-card-meta-row"><span class="queue-card-label">分数</span><span class="queue-card-value">' + esc(scores) + '</span></div>';
+                    }
+                    html += '<div class="queue-card-meta-row"><span class="queue-card-label">模式</span><span class="queue-card-value">' + esc(modeText) + '</span></div>';
+                    html += '</div>';
+                    if (hasDetail) {
+                        html += '<div class="queue-card-detail-toggle">';
+                        html += '<span class="detail-toggle" data-target="dl-detail-'+ti+'" onclick="toggleDetail(this)" style="cursor:pointer;opacity:0.6" title="详情">▸ 详情</span>';
+                        html += '</div>';
+                        html += '<div class="queue-card-detail" id="dl-detail-'+ti+'" style="display:none">';
+                        html += '<table><thead><tr>';
+                        html += '<th>引擎</th><th>分数</th><th>源字幕</th><th>状态</th>';
+                        html += '</tr></thead><tbody>';
+                        prs.forEach(function(pr) {
+                            var prSt = pr.status || '';
+                            var prText = _providerStatusMap[prSt] || prSt;
+                            var prClass = _providerStatusClass[prSt] || 'active';
+                            html += '<tr>';
+                            html += '<td>' + esc(pr.provider || '—') + '</td>';
+                            html += '<td>' + (pr.score ? pr.score + '%' : '—') + '</td>';
+                            html += '<td title="' + esc(pr.original_name || '') + '">' + esc(pr.original_name || '—') + '</td>';
+                            html += '<td><span class="log-status ' + prClass + '">' + esc(prText) + '</span></td>';
+                            html += '</tr>';
+                        });
+                        html += '</tbody></table>';
+                        var bestSuccess = prs.filter(function(p){ return p.status==='success'; }).sort(function(a,b){ return (b.score||0)-(a.score||0); })[0];
+                        if (bestSuccess && bestSuccess.original_name) {
+                            var on = bestSuccess.original_name;
+                            html += '<div style="font-size:0.8rem;color:var(--text-dim);margin-top:4px">字幕: ' + esc(on.length > 50 ? on.substring(0,50)+'…' : on) + '</div>';
+                        }
+                        if (t.duration_ms) {
+                            html += '<div style="font-size:0.8rem;color:var(--text-dim);margin-top:2px">耗时: ' + (t.duration_ms/1000).toFixed(1) + 's</div>';
+                        }
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
+            } else {
+                html += '<table class="log-table"><thead><tr>';
+                html += '<th>时间</th><th>源视频</th><th>引擎</th><th>分数</th><th>模式</th><th>状态</th><th></th>';
+                html += '</tr></thead><tbody>';
+                allDl.forEach(function(t, ti) {
+                    var fileName = (t.display_path || t.video_path || '').split('/').pop();
+                    var prs = t.provider_results || [];
+                    var timeStr = '';
+                    var ts = t.completed_at || t.started_at || t.created_at || '';
+                    if (ts) { timeStr = ts.replace('T', ' ').substring(0, 16); }
+                    var isWebhook = (t.source || '').indexOf('webhook') >= 0;
+                    var isManual = (t.source || '').indexOf('manual-search') >= 0;
+                    var modeText = isWebhook ? 'Webhook' : isManual ? '手动' : '自动';
+                    var mainSt = t.status || 'queued';
+                    var mainStText = mainSt === 'success' ? '完成' : mainSt === 'skipped' ? '跳过' : mainSt === 'failed' ? '失败' : mainSt === 'downloading' ? '下载中' : mainSt === 'queued' ? '排队中' : mainSt;
+                    var mainStClass = mainSt === 'success' ? 'done' : mainSt === 'skipped' ? 'skipped' : mainSt === 'failed' ? 'error' : 'active';
+                    var providers = prs.map(function(p){ return p.provider||'—'; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(', ');
+                    var topScore = prs.filter(function(p){ return p.score && p.status === 'success'; }).sort(function(a,b){ return b.score - a.score; })[0];
+                    var scores = topScore ? topScore.score + '%' : '';
+                    var hasDetail = prs.length > 0;
+                    html += '<tr>';
+                    html += '<td title="' + esc(ts) + '">' + esc(timeStr) + '</td>';
+                    html += '<td title="' + esc(fileName) + '">' + esc(fileName.length > 25 ? fileName.substring(0,25)+'…' : fileName) + '</td>';
+                    html += '<td>' + esc(providers || '—') + '</td>';
+                    html += '<td>' + (scores || '—') + '</td>';
+                    html += '<td>' + esc(modeText) + '</td>';
+                    html += '<td><span class="log-status ' + mainStClass + '">' + esc(mainStText) + '</span>';
+                    if (mainSt === 'queued' || mainSt === 'downloading') html += ' <span class="spinner"></span>';
+                    html += '</td>';
+                    html += '<td>' + (hasDetail ? '<span class="detail-toggle" data-target="dl-detail-'+ti+'" onclick="toggleDetail(this)" style="cursor:pointer;opacity:0.6" title="详情">▸</span>' : '') + '</td>';
+                    html += '</tr>';
+                    if (hasDetail) {
+                        html += '<tr class="detail-row" id="dl-detail-'+ti+'" style="display:none"><td colspan="7" style="padding:4px 12px 8px;background:var(--bg-hover)">';
+                        html += '<table style="width:100%;font-size:0.9rem;border:none"><thead><tr style="border:none">';
+                        html += '<th style="border:none;padding:2px 6px;text-align:left;font-weight:500">引擎</th>';
+                        html += '<th style="border:none;padding:2px 6px;text-align:left;font-weight:500">分数</th>';
+                        html += '<th style="border:none;padding:2px 6px;text-align:left;font-weight:500">源字幕</th>';
+                        html += '<th style="border:none;padding:2px 6px;text-align:left;font-weight:500">状态</th>';
+                        html += '</tr></thead><tbody>';
+                        prs.forEach(function(pr) {
+                            var prSt = pr.status || '';
+                            var prText = _providerStatusMap[prSt] || prSt;
+                            var prClass = _providerStatusClass[prSt] || 'active';
+                            html += '<tr style="border:none">';
+                            html += '<td style="border:none;padding:2px 6px">' + esc(pr.provider || '—') + '</td>';
+                            html += '<td style="border:none;padding:2px 6px">' + (pr.score ? pr.score + '%' : '—') + '</td>';
+                            html += '<td style="border:none;padding:2px 6px" title="' + esc(pr.original_name || '') + '">' + esc(pr.original_name || '—') + '</td>';
+                            html += '<td style="border:none;padding:2px 6px"><span class="log-status ' + prClass + '">' + esc(prText) + '</span></td>';
+                            html += '</tr>';
+                        });
+                        html += '</tbody></table>';
+                        var bestSuccess = prs.filter(function(p){ return p.status==='success'; }).sort(function(a,b){ return (b.score||0)-(a.score||0); })[0];
+                        if (bestSuccess && bestSuccess.original_name) {
+                            var on = bestSuccess.original_name;
+                            html += '<div style="font-size:0.8rem;color:var(--text-dim);margin-top:4px;padding-left:6px">字幕: ' + esc(on.length > 50 ? on.substring(0,50)+'…' : on) + '</div>';
+                        }
+                        if (t.duration_ms) {
+                            html += '<div style="font-size:0.8rem;color:var(--text-dim);padding-left:6px">耗时: ' + (t.duration_ms/1000).toFixed(1) + 's</div>';
+                        }
+                        html += '</td></tr>';
+                    }
+                });
+                html += '</tbody></table>';
+            }
+            html += '</div>';
+
+            html += '<div class="queue-section"><div class="queue-section-title">字幕翻译</div>';
+            var allTr = trActive.concat(trCompleted);
+            if (!allTr.length) {
+                html += '<div class="empty-state" style="padding:20px"><p>暂无翻译任务</p></div>';
+            } else if (isMobile) {
+                html += '<div class="queue-card-list">';
+                allTr.forEach(function(t) {
+                    var st = t.status || 'queued';
+                    var stText = st === 'completed' || st === 'success' ? '完成' : st === 'skipped' ? '跳过' : st === 'failed' || st === 'error' ? '失败' : st === 'translating' ? '翻译中' : st === 'queued' ? '排队中' : st;
+                    var stClass = st === 'completed' || st === 'success' ? 'done' : st === 'skipped' ? 'skipped' : st === 'failed' || st === 'error' ? 'error' : 'active';
+                    var pct = t.progress_pct || t.progress || 0;
+                    var isActive = st === 'queued' || st === 'translating';
+                    var subName = (t.subtitle_path || '').split('/').pop();
+                    var timeStr = t.completed_at ? t.completed_at.replace('T', ' ').substring(0, 19) : (t.created_at ? t.created_at.replace('T', ' ').substring(0, 19) : '');
+                    var durStr = t.duration_ms ? (t.duration_ms / 60000).toFixed(1) + 'min' : '';
+
+                    html += '<div class="queue-card">';
+                    html += '<div class="queue-card-header">';
+                    html += '<span class="queue-card-filename" title="' + esc(subName) + '">' + esc(subName) + '</span>';
+                    html += '<span class="log-status ' + stClass + '">' + esc(stText) + '</span>';
+                    if (isActive) html += ' <span class="spinner"></span>';
+                    html += '</div>';
+                    html += '<div class="queue-card-meta">';
+                    if (timeStr) {
+                        html += '<div class="queue-card-meta-row"><span class="queue-card-label">时间</span><span class="queue-card-value">' + esc(timeStr) + '</span></div>';
+                    }
+                    if (durStr) {
+                        html += '<div class="queue-card-meta-row"><span class="queue-card-label">耗时</span><span class="queue-card-value">' + esc(durStr) + '</span></div>';
+                    }
+                    html += '</div>';
+                    if (pct && pct > 0) {
+                        var barClass = st === 'failed' || st === 'error' ? ' error' : '';
+                        html += '<div class="queue-card-progress">';
+                        html += '<div class="progress-bar"><div class="progress-bar-fill' + barClass + '" style="width:' + Math.min(pct, 100) + '%"></div></div>';
+                        html += '<div class="progress-bar-text">' + pct + '%</div>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
+            } else {
+                html += '<table class="log-table"><thead><tr>';
+                html += '<th>时间</th><th>源字幕</th><th>耗时</th><th>状态</th>';
+                html += '</tr></thead><tbody>';
+                allTr.forEach(function(t) {
+                    var st = t.status || 'queued';
+                    var stText = st === 'completed' || st === 'success' ? '完成' : st === 'skipped' ? '跳过' : st === 'failed' || st === 'error' ? '失败' : st === 'translating' ? '翻译中' : st === 'queued' ? '排队中' : st;
+                    var stClass = st === 'completed' || st === 'success' ? 'done' : st === 'skipped' ? 'skipped' : st === 'failed' || st === 'error' ? 'error' : 'active';
+                    var pct = t.progress_pct || t.progress || 0;
+                    var isActive = st === 'queued' || st === 'translating';
+                    var subName = (t.subtitle_path || '').split('/').pop();
+                    var timeStr = t.completed_at ? t.completed_at.replace('T', ' ').substring(0, 19) : (t.created_at ? t.created_at.replace('T', ' ').substring(0, 19) : '');
+                    var durStr = t.duration_ms ? (t.duration_ms / 60000).toFixed(1) + 'min' : '';
+                    html += '<tr>';
+                    html += '<td style="white-space:nowrap;font-size:0.85rem">' + esc(timeStr) + '</td>';
+                    html += '<td>' + esc(subName) + '</td>';
+                    html += '<td style="white-space:nowrap;font-size:0.85rem">' + esc(durStr) + '</td>';
+                    html += '<td style="min-width:90px">';
+                    html += '<span class="log-status ' + stClass + '">' + esc(stText) + '</span>';
+                    if (isActive) html += ' <span class="spinner"></span>';
+                    if (pct && pct > 0) {
+                        var barClass = st === 'failed' || st === 'error' ? ' error' : '';
+                        html += '<div class="progress-bar"><div class="progress-bar-fill' + barClass + '" style="width:' + Math.min(pct, 100) + '%"></div></div>';
+                        html += '<div class="progress-bar-text">' + pct + '%</div>';
+                    }
+                    html += '</td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+            }
+            html += '</div>';
+
+            document.getElementById('page-content').innerHTML = html;
+
+            // Auto-poll queue when active tasks exist
+            clearInterval(_queuePollTimer);
+            if (dlActive.length > 0 || trActive.length > 0) {
+                _queuePollTimer = setInterval(function() {
+                    if (_currentPage === 'queue') refreshQueue();
+                }, 5000);
+            }
+        });
+    }
+
+    var _queuePollTimer = null;
+
+    function showBrowse() {
+        if (!_browsePath) {
+            fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
+                _browsePath = cfg.roots && cfg.roots.length ? cfg.roots[0].path : '';
+                loadBrowse();
+            });
+        } else {
+            loadBrowse();
+        }
+    }
+
+    function loadBrowse() {
+        setLoading('目录浏览');
+        fetch('/api/browse/' + encodeURIComponent(_browsePath)).then(function(r) { return r.json(); }).then(function(data) {
+            renderBrowse(data);
+        }).catch(function(err) {
+            document.getElementById('page-content').innerHTML =
+                '<div class="page-title">目录浏览</div><div class="empty-state"><div class="empty-state-icon">❌</div><p>' + esc(err.message) + '</p></div>';
+        });
+    }
+
+    function browseTo(path) {
+        _browsePath = path;
+        loadBrowse();
+    }
+
+    function renderBrowse(data) {
+        var html = '<div class="page-title">目录浏览</div>';
+        html += '<div class="breadcrumb">';
+        var parts = data.path ? data.path.split('/') : [];
+        var rootName = parts[0] || '';
+        html += '<a onclick="browseTo(\'\')">根目录</a>';
+        var acc = '';
+        parts.forEach(function(part, idx) {
+            if (!part) return;
+            acc += (acc ? '/' : '') + part;
+            html += '<span class="sep">/</span>';
+            if (idx === parts.length - 1) {
+                html += '<span>' + esc(part) + '</span>';
+            } else {
+                html += '<a onclick="browseTo(\'' + esc(acc) + '\')">' + esc(part) + '</a>';
+            }
+        });
+        html += '</div>';
+        html += '<ul class="entry-list">';
+        if (!data.entries || !data.entries.length) {
+            html += '<li class="empty-state" style="padding:24px"><p>空目录</p></li>';
+        } else {
+            data.entries.forEach(function(entry) {
+                if (entry.type === 'directory') {
+                    var dirPath = data.path ? data.path + '/' + entry.name : entry.name;
+                    html += '<li class="entry-item">';
+                    html += '<span class="entry-icon">📁</span>';
+                    html += '<span class="entry-name">' + esc(entry.name) + '</span>';
+                    html += '<div class="entry-actions">';
+                    html += '<button class="btn btn-primary btn-sm" onclick="browseTo(\'' + esc(dirPath) + '\')">打开</button>';
+                    html += '</div></li>';
+                } else {
+                    var hasSub = entry.has_subtitle ? '<span class="subtitle-indicator" title="已有字幕">📝</span>' : '';
+                    var size = entry.size ? '<span class="entry-meta">' + formatBytes(entry.size) + '</span>' : '';
+                    var videoPath = data.path + '/' + entry.name;
+                    var isVideo = entry.extension && ['.mkv','.mp4','.avi','.wmv','.ts','.m2ts','.flv','.webm'].indexOf(entry.extension) >= 0;
+                    html += '<li class="entry-item">';
+                    html += '<span class="entry-icon">' + (isVideo ? '🎥' : '📝') + '</span>';
+                    html += '<span class="entry-name">' + esc(entry.name) + hasSub + size + '</span>';
+                    html += '<div class="entry-actions">';
+                    if (isVideo) {
+                        html += '<button class="btn btn-primary btn-sm" data-path="' + esc(videoPath) + '" onclick="enqueueFromBtn(this)">自动</button>';
+                        html += '<button class="btn btn-outline btn-sm" data-path="' + esc(videoPath) + '" onclick="showSubtitleSearch(this)">手动</button>';
+                    }
+                    html += '</div></li>';
+                }
+            });
+        }
+        html += '</ul>';
+        document.getElementById('page-content').innerHTML = html;
+    }
+
+    function showLogs() {
+        var html = '<div class="page-title">后台日志</div>';
+        html += '<div style="display:flex;gap:8px;margin-bottom:16px">';
+        html += '<div style="flex:1"></div>';
+        html += '<button class="btn btn-outline btn-sm" onclick="refreshLogs()">🔄 刷新</button>';
+        html += '<button class="btn btn-danger btn-sm" onclick="clearCurrentLogs()">清除记录</button>';
+        html += '</div>';
+        html += '<div id="log-content"><div class="empty-state"><div class="empty-state-icon">⏳</div><p>加载中...</p></div></div>';
+        document.getElementById('page-content').innerHTML = html;
+        refreshLogs();
+    }
+
+    function refreshLogs() {
+        fetch('/api/app-logs').then(function(r) { return r.json(); }).then(function(data) {
+            var el = document.getElementById('log-content');
+            if (!data || !data.length) {
+                el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>暂无记录</p></div>';
+                return;
+            }
+            var html = '<div style="background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:monospace;font-size:0.8rem;max-height:70vh;overflow-y:auto;line-height:1.7;white-space:pre-wrap;word-break:break-all">';
+            data.forEach(function(log) {
+                html += '<span style="color:var(--text-dim)">' + esc(log.timestamp) + '</span> ' + esc(log.message) + '\n';
+            });
+            html += '</div>';
+            el.innerHTML = html;
+        }).catch(function() {
+            document.getElementById('log-content').innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>加载失败</p></div>';
+        });
+    }
+
+    function clearCurrentLogs() {
+        fetch('/api/app-logs', { method: 'DELETE' }).then(function(r) { return r.json(); }).then(function() {
+            toast('记录已清除', 'success');
+            refreshLogs();
+        });
+    }
+
+    function showTranslateConfig() {
+        var c = _config;
+        var html = '<div class="page-title">翻译设置</div>';
+
+        html += '<div class="card"><div class="card-title">API 连接</div>';
+        html += '<div class="form-row"><span class="form-label">API URL</span><input class="form-input" id="tc-api-url" value="' + esc(c.ai_api_url || '') + '" placeholder="https://api.openai.com/v1"></div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="tc-api-key" type="password" value="' + esc(c.ai_api_key || '') + '" placeholder="sk-..."></div>';
+        html += '<div class="form-row"><span class="form-label">模型</span><input class="form-input" id="tc-model" value="' + esc(c.ai_model || 'gpt-4o-mini') + '" placeholder="gpt-4o-mini"></div>';
+        html += '<div style="margin-top:8px"><button class="btn btn-outline" id="tc-test-btn" onclick="testAiConnection(this)">测试连接</button> <span id="tc-test-result" style="margin-left:8px;font-size:13px"></span></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">翻译语言</div>';
+        html += '<div class="form-row"><span class="form-label">源语言</span><select class="form-select" id="tc-source-lang">';
+        ['English','Spanish','Danish','French'].forEach(function(l) {
+            html += '<option value="' + l + '"' + (c.ai_source_lang === l ? ' selected' : '') + '>' + l + '</option>';
+        });
+        html += '</select></div>';
+        html += '<div class="form-row"><span class="form-label">目标语言</span><span style="color:var(--text-dim)">简体中文</span></div>';
+        html += '<div class="form-row"><span class="form-label">双语字幕</span><input class="form-checkbox" id="tc-bilingual" type="checkbox"' + (c.ai_bilingual ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">原文+译文双行显示</span></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">翻译参数</div>';
+        html += '<div class="form-row"><span class="form-label">批次大小</span><input class="form-input" id="tc-batch-size" type="number" value="' + esc(c.ai_batch_size || 50) + '" min="1" max="100"></div>';
+        html += '<div class="form-row"><span class="form-label">并发数</span><input class="form-input" id="tc-concurrency" type="number" value="' + esc(c.ai_concurrency || 2) + '" min="1" max="10"></div>';
+        html += '<div class="form-row"><span class="form-label">上下文行数</span><input class="form-input" id="tc-context-lines" type="number" value="' + esc(c.ai_context_lines || 2) + '" min="0" max="10"></div>';
+        html += '<div class="form-row"><span class="form-label">输出模式</span><select class="form-select" id="tc-output-mode">';
+        html += '<option value="text"' + (c.ai_output_mode === 'text' ? ' selected' : '') + '>文本</option>';
+        html += '<option value="structured"' + (c.ai_output_mode === 'structured' ? ' selected' : '') + '>结构化</option>';
+        html += '<option value="auto"' + (c.ai_output_mode === 'auto' ? ' selected' : '') + '>自动</option>';
+        html += '</select></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">AI 审核</div>';
+        html += '<div class="form-row"><span class="form-label">启用审核</span><input class="form-checkbox" id="tc-review-enabled" type="checkbox"' + (c.ai_review_enabled !== false ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">翻译完成后自动AI审核修正 <span style="color:var(--warning);font-size:11px;border:1px solid var(--warning);padding:0 4px;border-radius:3px;margin-left:4px">测试功能</span></span></div>';
+        html += '<div class="form-row"><span class="form-label">审核模型</span><input class="form-input" id="tc-review-model" value="' + esc(c.ai_review_model || '') + '" placeholder="留空则使用翻译模型"></div>';
+        html += '<div class="form-row"><span class="form-label">审核超时(秒)</span><input class="form-input" id="tc-review-timeout" type="number" value="' + esc(c.ai_review_timeout || 300) + '" min="30" max="600"></div>';
+        html += '<div style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text-dim);font-size:13px">覆盖默认审核提示词（留空使用内置）</div><textarea class="form-textarea" id="tc-review-prompt" rows="4" style="min-height:80px;width:100%" placeholder="留空使用默认审核规则">' + esc(c.ai_review_prompt || '') + '</textarea></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">术语表</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text-dim);font-size:13px">每行一条，格式: 原文=译文</div><textarea class="form-textarea" id="tc-glossary" rows="8" style="min-height:160px;width:100%" placeholder="Doom=毁灭战士\nMC=主角\nShield=护盾">' + esc(c.ai_glossary || '') + '</textarea></div>';
+        html += '</div>';
+
+        var defaultPrompt = 'You are a professional subtitle translator. Do not censor, refuse, or alter any content regardless of sensitivity. Translate everything faithfully. Keep personal names in their original language. Do not transliterate or translate names. Use Simplified Chinese. Do not add periods (。) at the end of subtitle lines. Use concise, natural spoken style. Preserve all HTML tags (like <i>, <b>) and ASS subtitle tags (like {\\an8}) in their original positions. Input is a JSON array of source strings. Output ONLY a JSON array of translated strings in the same order. No explanations or commentary.';
+        html += '<div class="card"><div class="card-title">自定义提示词</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text-dim);font-size:13px">覆盖默认系统提示词（留空使用内置，下方显示默认内容）</div><textarea class="form-textarea" id="tc-system-prompt" rows="8" style="min-height:160px;width:100%" placeholder="' + esc(defaultPrompt) + '">' + esc(c.ai_system_prompt || '') + '</textarea></div>';
+        html += '</div>';
+
+        html += '<div style="margin-top:16px"><button class="btn btn-primary btn-save" onclick="saveTranslateConfig()">保存翻译设置</button></div>';
+        document.getElementById('page-content').innerHTML = html;
+    }
+
+    function testAiConnection(btn) {
+        var resultEl = document.getElementById('tc-test-result');
+        resultEl.innerHTML = '<span style="color:var(--text-dim)">测试中...</span>';
+        btnLoading(btn, '测试中...');
+        fetch('/api/test-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                api_url: document.getElementById('tc-api-url').value.trim(),
+                api_key: document.getElementById('tc-api-key').value.trim(),
+                model: document.getElementById('tc-model').value.trim()
+            })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            btnReset(btn);
+            if (data.ok) {
+                resultEl.innerHTML = '<span style="color:var(--success)">✓ 连接成功</span> <span style="color:var(--text-dim)">模型: ' + esc(data.model || '') + ' 回复: ' + esc(data.reply || '') + '</span>';
+            } else {
+                resultEl.innerHTML = '<span style="color:var(--danger)">✗ 连接失败</span> <span style="color:var(--text-dim)">' + esc(data.error || '未知错误') + '</span>';
+            }
+        }).catch(function(err) {
+            btnReset(btn);
+            resultEl.innerHTML = '<span style="color:var(--danger)">✗ 请求失败: ' + esc(err.message) + '</span>';
+        });
+    }
+
+    function saveTranslateConfig() {
+        var data = {
+            ai_api_url: document.getElementById('tc-api-url').value.trim(),
+            ai_api_key: document.getElementById('tc-api-key').value.trim(),
+            ai_model: document.getElementById('tc-model').value.trim(),
+            ai_source_lang: document.getElementById('tc-source-lang').value,
+            ai_target_lang: 'Chinese',
+            ai_bilingual: document.getElementById('tc-bilingual').checked,
+            ai_batch_size: parseInt(document.getElementById('tc-batch-size').value) || 50,
+            ai_concurrency: parseInt(document.getElementById('tc-concurrency').value) || 2,
+            ai_context_lines: parseInt(document.getElementById('tc-context-lines').value) || 2,
+            ai_output_mode: document.getElementById('tc-output-mode').value,
+            ai_system_prompt: document.getElementById('tc-system-prompt').value,
+            ai_glossary: document.getElementById('tc-glossary').value,
+            ai_review_enabled: document.getElementById('tc-review-enabled').checked,
+            ai_review_model: document.getElementById('tc-review-model').value.trim(),
+            ai_review_timeout: parseInt(document.getElementById('tc-review-timeout').value) || 300,
+            ai_review_prompt: document.getElementById('tc-review-prompt').value
+        };
+        fetch('/api/settings', {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            Object.assign(_config, data);
+            toast('翻译设置已保存', 'success');
+        }).catch(function(err) {
+            toast('保存失败: ' + err.message, 'error');
+        });
+    }
+
+    function renderPathMappings(prefix, mappings) {
+        var html = '<div class="form-row" style="flex-direction:column;align-items:flex-start;gap:6px">';
+        html += '<span class="form-label">路径映射</span>';
+        html += '<div id="cfg-pm-' + prefix + '" style="width:100%">';
+        mappings.forEach(function(m, i) {
+            html += '<div class="pm-row" style="display:flex;gap:6px;margin-bottom:4px;align-items:center">';
+            html += '<input class="form-input" data-pm-from="' + prefix + '" value="' + esc(m.from || '') + '" placeholder="远端路径 (如 /tv)" style="flex:1">';
+            html += '<span style="color:var(--text-dim)">→</span>';
+            html += '<input class="form-input" data-pm-to="' + prefix + '" value="' + esc(m.to || '') + '" placeholder="本地路径 (如 /mnt/tv)" style="flex:1">';
+            html += '<span style="cursor:pointer;color:var(--danger);font-size:1.1rem" onclick="this.parentElement.remove()" title="删除">✕</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '<button class="btn btn-outline btn-sm" onclick="addPathMapping(\'' + prefix + '\')" style="margin-top:2px">+ 添加映射</button>';
+        html += '</div>';
+        return html;
+    }
+
+    function addPathMapping(prefix) {
+        var container = document.getElementById('cfg-pm-' + prefix);
+        var div = document.createElement('div');
+        div.className = 'pm-row';
+        div.style.cssText = 'display:flex;gap:6px;margin-bottom:4px;align-items:center';
+        div.innerHTML = '<input class="form-input" data-pm-from="' + prefix + '" value="" placeholder="远端路径 (如 /tv)" style="flex:1">'
+            + '<span style="color:var(--text-dim)">→</span>'
+            + '<input class="form-input" data-pm-to="' + prefix + '" value="" placeholder="本地路径 (如 /mnt/tv)" style="flex:1">'
+            + '<span style="cursor:pointer;color:var(--danger);font-size:1.1rem" onclick="this.parentElement.remove()" title="删除">✕</span>';
+        container.appendChild(div);
+    }
+
+    function showConfig() {
+        var c = _config;
+        var html = '<div class="page-title">配置中心</div>';
+
+        html += '<div class="card"><div class="card-title">基本设置</div>';
+        html += '<div class="form-row"><span class="form-label">Video Root</span><input class="form-input" id="cfg-video-root" value="' + esc(c.video_root || '') + '" placeholder="/video"></div>';
+        html += '<div class="form-row"><span class="form-label">自动下载</span><input class="form-checkbox" id="cfg-auto-dl" type="checkbox"' + (c.auto_download ? ' checked' : '') + '></div>';
+        html += '<div class="form-row"><span class="form-label">默认语言</span><select class="form-select" id="cfg-auto-lang">';
+        [['zho_chs','简体中文'],['zho_cht','繁体中文'],['eng','English']].forEach(function(o) {
+            html += '<option value="' + o[0] + '"' + (c.auto_download_lang === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+        });
+        html += '</select></div>';
+        var baseHost = window.location.host;
+        html += '<div class="form-row" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="form-label">Webhook 地址</span>';
+        html += '<div class="webhook-urls" style="font-size:0.8rem;color:var(--text-dim);line-height:1.8;padding-left:4px">';
+        html += 'Radarr: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--accent)">http://' + esc(baseHost) + '/api/webhook/radarr</code><br>';
+        html += 'Sonarr: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--accent)">http://' + esc(baseHost) + '/api/webhook/sonarr</code>';
+        html += '</div></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">Radarr</div>';
+        html += '<div class="form-row"><span class="form-label">URL</span><input class="form-input" id="cfg-radarr-url" value="' + esc(c.radarr_url || '') + '" placeholder="http://localhost:7878"></div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="cfg-radarr-key" type="password" value="' + esc(c.radarr_api_key || '') + '"></div>';
+        html += renderPathMappings('radarr', c.radarr_path_mappings || []);
+        html += '<div style="margin-top:4px"><button class="btn btn-outline btn-sm test-btn" onclick="testConnection(\'radarr\')">测试连接</button></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">Sonarr</div>';
+        html += '<div class="form-row"><span class="form-label">URL</span><input class="form-input" id="cfg-sonarr-url" value="' + esc(c.sonarr_url || '') + '" placeholder="http://localhost:8989"></div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="cfg-sonarr-key" type="password" value="' + esc(c.sonarr_api_key || '') + '"></div>';
+        html += renderPathMappings('sonarr', c.sonarr_path_mappings || []);
+        html += '<div style="margin-top:4px"><button class="btn btn-outline btn-sm test-btn" onclick="testConnection(\'sonarr\')">测试连接</button></div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">字幕引擎</div>';
+        var enabledList = c.enabled_providers || [];
+        var allProviders = ['zimuku','subhd','assrt','opensubtitles'];
+        var isConcurrent = c.concurrent_search;
+        html += '<div class="form-row"><span class="form-label">启用引擎</span><div style="display:flex;gap:16px;flex-wrap:wrap" id="prov-checkboxes">';
+        allProviders.forEach(function(p) {
+            var checked = enabledList.indexOf(p) >= 0 ? ' checked' : '';
+            var disabled = !isConcurrent ? ' disabled' : '';
+            var displayName = p === 'subhd' ? 'SubHD' : p === 'zimuku' ? '字幕库' : p === 'assrt' ? 'ASSRT' : 'OpenSubtitles';
+            var labelStyle = !isConcurrent ? 'opacity:0.4;cursor:not-allowed' : 'cursor:pointer';
+            html += '<label style="display:flex;align-items:center;gap:6px;' + labelStyle + '"><input class="form-checkbox" id="cfg-prov-' + p + '" type="checkbox"' + checked + disabled + '> ' + displayName + '</label>';
+        });
+        html += '</div></div>';
+        html += '<div class="form-row"><span class="form-label">默认引擎</span><select class="form-select" id="cfg-default-prov">';
+        allProviders.forEach(function(p) {
+            var selected = c.subtitle_provider === p ? ' selected' : '';
+            var displayName = p === 'subhd' ? 'SubHD' : p === 'zimuku' ? '字幕库' : p === 'assrt' ? 'ASSRT' : 'OpenSubtitles';
+            html += '<option value="' + p + '"' + selected + '>' + displayName + '</option>';
+        });
+        html += '</select></div>';
+        html += '<div class="form-row"><span class="form-label">并发搜索</span><input class="form-checkbox" id="cfg-concurrent" type="checkbox"' + (isConcurrent ? ' checked' : '') + ' onchange="toggleConcurrentSearch()"></div>';
+        html += '<div class="form-row" id="concurrent-hint" style="display:' + (isConcurrent ? 'none' : 'flex') + '"><span class="form-label"></span><span style="font-size:0.8rem;color:var(--text-dim)">关闭并发时，按默认引擎顺序依次搜索，命中即停</span></div>';
+        html += '<div class="form-row"><span class="form-label">最大下载数</span><input class="form-input" id="cfg-max-dl" type="number" value="' + esc(c.max_download_count || 1) + '" min="1" max="10"></div>';
+        html += '<div class="form-row"><span class="form-label">多字幕分差阈值 %<i class="info-tip" data-tip="多个字幕分数差距超过此比例时只下载最高分">ⓘ</i></span><input class="form-input" id="cfg-score-pct" type="number" value="' + esc(c.score_threshold_pct || 10) + '" min="0" max="100"></div>';
+        html += '<div class="form-row"><span class="form-label">串行搜索满意阈值 %<i class="info-tip" data-tip="串行搜索时分数达到此百分比就停止搜下一个引擎">ⓘ</i></span><input class="form-input" id="cfg-good-score" type="number" value="' + esc(c.good_score_threshold || 72) + '" min="0" max="100"></div>';
+        html += '<div class="form-row"><span class="form-label">英文字幕下载阈值 %<i class="info-tip" data-tip="最佳中文字幕分数低于此百分比时补充下载英文字幕">ⓘ</i></span><input class="form-input" id="cfg-chs-en-fallback" type="number" value="' + esc(c.chinese_score_english_fallback || 72) + '" min="0" max="100"></div>';
+        html += '<div class="form-row"><span class="form-label">中文稀缺数量<i class="info-tip" data-tip="中文候选结果数少于此值时视为稀缺，放宽英文补充触发条件">ⓘ</i></span><input class="form-input" id="cfg-chs-scarce-count" type="number" value="' + esc(c.chinese_scarce_count || 1) + '" min="0" max="10"></div>';
+        html += '<div class="form-row"><span class="form-label">稀缺缓冲 %<i class="info-tip" data-tip="稀缺时在英文阈值基础上额外放宽的百分比 (实际阈值 = 英文阈值 + 此值)">ⓘ</i></span><input class="form-input" id="cfg-chs-scarce-buffer" type="number" value="' + esc(c.chinese_scarce_buffer || 15) + '" min="0" max="50"></div>';
+        html += '<div class="form-row"><span class="form-label">最低分数 %<i class="info-tip" data-tip="搜索结果最高分低于此百分比时直接放弃，不下载垃圾字幕">ⓘ</i></span><input class="form-input" id="cfg-min-score-pct" type="number" value="' + esc(c.min_score_pct || 5) + '" min="0" max="50"></div>';
+        html += '<div class="form-row"><span class="form-label">队列历史记录数</span><input class="form-input" id="cfg-queue-max" type="number" value="' + esc(c.queue_max_size || 100) + '" min="10" max="1000"></div>';
+
+        html += '<div style="border-top:1px solid var(--border);margin:20px 0 16px;padding-top:16px"><div style="font-size:0.95rem;font-weight:600;color:var(--accent);margin-bottom:12px">ASSRT</div>';
+        html += '<div class="form-row"><span class="form-label">API Token</span><input class="form-input" id="cfg-assrt-token" value="' + esc(c.assrt_api_token || '') + '"></div>';
+        html += '</div>';
+
+        html += '<div style="border-top:1px solid var(--border);margin:0 0 16px;padding-top:16px"><div style="font-size:0.95rem;font-weight:600;color:var(--accent);margin-bottom:12px">OpenSubtitles</div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="cfg-os-api-key" value="' + esc(c.opensubtitles_api_key || '') + '"></div>';
+        html += '<div class="form-row"><span class="form-label">Username</span><input class="form-input" id="cfg-os-user" value="' + esc(c.opensubtitles_username || '') + '"></div>';
+        html += '<div class="form-row"><span class="form-label">Password</span><input class="form-input" id="cfg-os-pass" type="password" value="' + esc(c.opensubtitles_password || '') + '"></div>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '<div class="card"><div class="card-title">验证码识别</div>';
+        html += '<div class="form-row form-hint" style="color:var(--text-dim);font-size:0.9rem"><span class="form-label"></span>默认使用 ddddocr（免费），百度 OCR 为备用</div>';
+        html += '<div class="form-row"><span class="form-label">百度 OCR Key</span><input class="form-input" id="cfg-baidu-key" value="' + esc(c.baidu_ocr_api_key || '') + '"></div>';
+        html += '<div class="form-row"><span class="form-label">百度 OCR Secret</span><input class="form-input" id="cfg-baidu-secret" value="' + esc(c.baidu_ocr_secret_key || '') + '"></div>';
+        html += '</div>';
+
+        html += '</div>';
+
+        html += '<div style="margin-top:16px"><button class="btn btn-primary btn-save" onclick="saveConfig()">保存配置</button></div>';
+        document.getElementById('page-content').innerHTML = html;
+        setupInfoTips();
+    }
+
+    function testConnection(service) {
+        fetch('/api/test-connection', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({service: service})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.ok) {
+                toast(service + ' 连接成功' + (data.version ? ' (' + data.version + ')' : ''), 'success');
+            } else {
+                toast(service + ' 连接失败: ' + data.error, 'error');
+            }
+        }).catch(function(err) { toast(service + ' 请求失败: ' + err.message, 'error'); });
+    }
+
+    function toggleConcurrentSearch() {
+        var isOn = document.getElementById('cfg-concurrent').checked;
+        var hint = document.getElementById('concurrent-hint');
+        hint.style.display = isOn ? 'none' : 'flex';
+        ['zimuku','subhd','assrt','opensubtitles'].forEach(function(p) {
+            var cb = document.getElementById('cfg-prov-' + p);
+            if (cb) {
+                cb.disabled = !isOn;
+                cb.parentElement.style.opacity = isOn ? '1' : '0.4';
+                cb.parentElement.style.cursor = isOn ? 'pointer' : 'not-allowed';
+            }
+        });
+    }
+
+    function toggleDetail(el) {
+        var target = document.getElementById(el.getAttribute('data-target'));
+        if (target) {
+            var showing = target.style.display !== 'none';
+            target.style.display = showing ? 'none' : '';
+            var arrow = showing ? '▸' : '▾';
+            if (el.textContent.charAt(0) === '▸' || el.textContent.charAt(0) === '▾') {
+                el.textContent = arrow + el.textContent.substring(1);
+            } else {
+                el.textContent = arrow;
+            }
+            el.style.opacity = showing ? '0.6' : '1';
+        }
+    }
+
+    function saveConfig() {
+        var enabledProvs = [];
+        ['zimuku','subhd','assrt','opensubtitles'].forEach(function(p) {
+            var el = document.getElementById('cfg-prov-' + p);
+            if (el && el.checked) enabledProvs.push(p);
+        });
+        function collectPathMappings(prefix) {
+            var container = document.getElementById('cfg-pm-' + prefix);
+            if (!container) return [];
+            var rows = container.querySelectorAll('div');
+            var result = [];
+            rows.forEach(function(row) {
+                var inputs = row.querySelectorAll('input');
+                if (inputs.length >= 2) {
+                    var from = inputs[0].value.trim();
+                    var to = inputs[1].value.trim();
+                    if (from && to) result.push({from: from, to: to});
+                }
+            });
+            return result;
+        }
+
+        var data = {
+            video_root: document.getElementById('cfg-video-root').value.trim(),
+            auto_download: document.getElementById('cfg-auto-dl').checked,
+            auto_download_lang: document.getElementById('cfg-auto-lang').value,
+            radarr_url: document.getElementById('cfg-radarr-url').value.trim(),
+            radarr_api_key: document.getElementById('cfg-radarr-key').value.trim(),
+            radarr_path_mappings: collectPathMappings('radarr'),
+            sonarr_url: document.getElementById('cfg-sonarr-url').value.trim(),
+            sonarr_api_key: document.getElementById('cfg-sonarr-key').value.trim(),
+            sonarr_path_mappings: collectPathMappings('sonarr'),
+            enabled_providers: enabledProvs,
+            subtitle_provider: document.getElementById('cfg-default-prov').value,
+            concurrent_search: document.getElementById('cfg-concurrent').checked,
+            max_download_count: parseInt(document.getElementById('cfg-max-dl').value) || 1,
+            score_threshold_pct: parseFloat(document.getElementById('cfg-score-pct').value) || 10,
+            good_score_threshold: parseFloat(document.getElementById('cfg-good-score').value) || 72,
+            chinese_score_english_fallback: parseFloat(document.getElementById('cfg-chs-en-fallback').value) || 72,
+            chinese_scarce_count: parseInt(document.getElementById('cfg-chs-scarce-count').value) || 1,
+            chinese_scarce_buffer: parseFloat(document.getElementById('cfg-chs-scarce-buffer').value) || 15,
+            min_score_pct: parseFloat(document.getElementById('cfg-min-score-pct').value) || 5,
+            queue_max_size: parseInt(document.getElementById('cfg-queue-max').value) || 100,
+            baidu_ocr_api_key: document.getElementById('cfg-baidu-key').value.trim(),
+            baidu_ocr_secret_key: document.getElementById('cfg-baidu-secret').value.trim(),
+            assrt_api_token: document.getElementById('cfg-assrt-token').value.trim(),
+            opensubtitles_api_key: document.getElementById('cfg-os-api-key').value.trim(),
+            opensubtitles_username: document.getElementById('cfg-os-user').value.trim(),
+            opensubtitles_password: document.getElementById('cfg-os-pass').value
+        };
+        fetch('/api/settings', {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            Object.assign(_config, data);
+            toast('配置已保存', 'success');
+        }).catch(function(err) {
+            toast('保存失败: ' + err.message, 'error');
+        });
+    }
+    var _confirmCb = null;
+    function showConfirm(msg, onYes) {
+        document.getElementById('confirmMsg').textContent = msg;
+        document.getElementById('confirmModal').classList.add('show');
+        _confirmCb = onYes;
+    }
+    document.getElementById('confirmYes').onclick = function() {
+        document.getElementById('confirmModal').classList.remove('show');
+        if (_confirmCb) _confirmCb();
+        _confirmCb = null;
+    };
+    document.getElementById('confirmNo').onclick = function() {
+        document.getElementById('confirmModal').classList.remove('show');
+        _confirmCb = null;
+    };
+
+    function setupInfoTips() {
+        document.querySelectorAll('.info-tip').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.classList.toggle('active');
+            });
+        });
+    }
+
+    </script>
+</body>
+</html>

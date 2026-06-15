@@ -1,0 +1,9 @@
+beautifulsoup4>=4.12
+cairosvg>=2.7
+ddddocr>=1.5
+fastapi>=0.100
+guessit>=3.7
+pillow>=10.0
+rarfile>=4.0
+requests>=2.31
+uvicorn>=0.30

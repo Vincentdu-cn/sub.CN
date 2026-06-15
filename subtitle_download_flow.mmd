@@ -1,0 +1,244 @@
+%% 字幕下载全流程决策图
+%% 可在 https://mermaid.live 或 VS Code Mermaid 插件中渲染
+
+flowchart TD
+    %% ═══════════════════════════════════════
+    %% Webhook 入口
+    %% ═══════════════════════════════════════
+    START([Radarr / Sonarr Webhook 触发]) --> AUTO_DL{auto_download<br/>开启?}
+
+    AUTO_DL -->|No| IGNORE1[ignored:<br/>auto_download disabled]
+    AUTO_DL -->|Yes| EVT_TYPE{eventType ∈<br/>Download /<br/>MovieFileImported /<br/>EpisodeFileImported?}
+
+    EVT_TYPE -->|No| IGNORE2[ignored:<br/>event 不匹配]
+    EVT_TYPE -->|Yes| EXTRACT_PATH[提取 file_path]
+
+    EXTRACT_PATH --> FILE_EXISTS{文件路径<br/>存在?}
+
+    FILE_EXISTS -->|Yes| IS_VIDEO{是视频文件?<br/>后缀 ∈ VIDEO_EXTENSIONS}
+    FILE_EXISTS -->|No| REMAP[尝试路径映射<br/>_try_remap_path]
+
+    REMAP --> REMAP_OK{映射成功?}
+    REMAP_OK -->|Yes| IS_VIDEO
+    REMAP_OK -->|No| IGNORE3[ignored:<br/>file not found]
+
+    IS_VIDEO -->|No| IGNORE4[ignored:<br/>not a video file]
+    IS_VIDEO -->|Yes| HAS_SUB1{已有字幕?<br/>_has_subtitle}
+
+    HAS_SUB1 -->|Yes| SKIP1[skipped:<br/>subtitle already exists]
+    HAS_SUB1 -->|No| ENQUEUE[加入下载队列<br/>task_id = dl_xxx<br/>status = queued]
+
+    %% ═══════════════════════════════════════
+    %% Download Worker
+    %% ═══════════════════════════════════════
+    ENQUEUE --> WORKER[_download_worker<br/>取出 task]
+    WORKER --> CHECK_ZH_LIVE{实时字幕状态<br/>_get_subtitle_status<br/>== zh ?<br/>且非 force}
+
+    CHECK_ZH_LIVE -->|Yes| SKIP2[skipped:<br/>已有中文字幕]
+    CHECK_ZH_LIVE -->|No| BUILD_KW
+
+    %% ═══════════════════════════════════════
+    %% 构建搜索关键词
+    %% ═══════════════════════════════════════
+    subgraph BUILD_KW [构建搜索关键词 _build_search_keyword]
+        direction TB
+        KW1{video_info 存在?}
+        KW1 -->|Yes| KW2{有 imdb_id?}
+        KW1 -->|No| KW_FALLBACK[使用文件名 stem]
+        KW2 -->|Yes| KW_IMDB[使用 imdb_id]
+        KW2 -->|No| KW3{有 scene_name?}
+        KW3 -->|Yes| KW_SCENE[使用 scene_name]
+        KW3 -->|No| KW4{有 title + year?}
+        KW4 -->|Yes| KW_TITLE["title + year"]
+        KW4 -->|No| KW5{有 title?}
+        KW5 -->|Yes| KW_TITLE_ONLY[使用 title]
+        KW5 -->|No| KW_FALLBACK
+    end
+
+    %% ═══════════════════════════════════════
+    %% 搜索模式选择
+    %% ═══════════════════════════════════════
+    BUILD_KW --> SEARCH_MODE{concurrent_search<br/>开启?}
+
+    SEARCH_MODE -->|Yes 并发| CONCURRENT[所有 enabled_providers<br/>并行搜索<br/>asyncio.gather]
+    SEARCH_MODE -->|No 顺序| SEQUENTIAL[按 fallback_order<br/>逐引擎搜索]
+
+    CONCURRENT --> MERGE[合并所有结果]
+    SEQUENTIAL --> MERGE
+
+    %% ═══════════════════════════════════════
+    %% 评分
+    %% ═══════════════════════════════════════
+    MERGE --> SCORE
+
+    subgraph SCORE [评分 compute_match_score]
+        direction TB
+        S0[原始 score > 0?] -->|Yes 跳过| S_DONE[保留原始分数]
+        S0 -->|No| S1[parse_subtitle_name]
+        S1 --> S2[compute_match_score<br/>Bazarr 权重体系]
+        S2 --> S3{score > 0?}
+        S3 -->|Yes| S_DONE2[使用匹配分]
+        S3 -->|No| S4[token 重叠兜底]
+        S4 --> S5["score = max(10, 40 × overlap_ratio)"]
+        S5 --> S_DONE3[使用兜底分]
+
+        S_SCORE_TABLE[<b>权重表</b><br/>──────────<br/>Movie满分=120<br/>Episode满分=356<br/>──────────<br/>title:55 / series:172<br/>year:28 / year:86<br/>release_group:13/14<br/>source:7 / season:30<br/>streaming_service:5<br/>edition:5 / episode:30<br/>audio_codec:3<br/>resolution:2<br/>video_codec:2]
+    end
+
+    SCORE --> SORT[按 score 降序排列]
+
+    %% ═══════════════════════════════════════
+    %% 语言筛选
+    %% ═══════════════════════════════════════
+    SORT --> LANG_FILTER
+
+    subgraph LANG_FILTER [_select_eligible_results 语言筛选]
+        direction TB
+        LF0{lang 参数?}
+
+        LF0 -->|zho_chs<br/>简体中文| LF_SIM1[Tier1: 筛选简体<br/>_ZH_SIM]
+        LF0 -->|zho_cht<br/>繁体中文| LF_TRA1[Tier1: 筛选繁体<br/>_ZH_TRA]
+        LF0 -->|eng<br/>英文| LF_EN[Tier1: 筛选英文<br/>_EN]
+        LF0 -->|其他| LF_ALL[Tier1: 筛选全部中文<br/>_ZH_ALL]
+
+        LF_SIM1 --> LF_SIM_HAS{有结果?}
+        LF_SIM_HAS -->|Yes| THRESHOLD
+        LF_SIM_HAS -->|No 兜底| LF_SIM2[Tier2: 筛选繁体<br/>_ZH_TRA]
+
+        LF_TRA1 --> LF_TRA_HAS{有结果?}
+        LF_TRA_HAS -->|Yes| THRESHOLD
+        LF_TRA_HAS -->|No 兜底| LF_TRA2[Tier2: 筛选简体<br/>_ZH_SIM]
+
+        LF_EN --> THRESHOLD
+        LF_ALL --> THRESHOLD
+        LF_SIM2 --> THRESHOLD
+        LF_TRA2 --> THRESHOLD
+
+        THRESHOLD[_threshold_pick 阈值筛选]
+        THRESHOLD --> TH1[1. top_score = 最高分]
+        TH1 --> TH2["2. 阈值 = top_score × score_threshold_pct%"]
+        TH2 --> TH3[3. eligible = score ≥ 阈值]
+        TH3 --> TH4{eligible ≥ 2?}
+        TH4 -->|No| TH_FINAL[截取 max_download_count 个]
+        TH4 -->|Yes| TH5["diff = (第1-第2)/第1 × 100%"]
+        TH5 --> TH6{diff > threshold%?}
+        TH6 -->|Yes 第1远超第2| TH7[只取第1名]
+        TH6 -->|No 分数接近| TH8[保留多个候选]
+        TH7 --> TH_FINAL
+        TH8 --> TH_FINAL
+    end
+
+    %% ═══════════════════════════════════════
+    %% 逐个下载
+    %% ═══════════════════════════════════════
+    LANG_FILTER --> DOWNLOAD_LOOP{eligible 不为空<br/>且 success < max_dl?}
+
+    DOWNLOAD_LOOP -->|No| PHASE2
+    DOWNLOAD_LOOP -->|Yes| IS_EN_RESULT{当前结果<br/>是英文?}
+
+    IS_EN_RESULT -->|Yes| HAS_EN_ALREADY{已有英文<br/>字幕?}
+    IS_EN_RESULT -->|No| DO_DOWNLOAD[调用 provider.download]
+
+    HAS_EN_ALREADY -->|Yes| SKIP_EN[skipped:<br/>已有英文字幕]
+    HAS_EN_ALREADY -->|No| DO_DOWNLOAD
+
+    DO_DOWNLOAD --> DL_RESULT{下载结果}
+    DL_RESULT -->|成功<br/>后缀 ∈ SUBTITLE_EXT| DL_SUCCESS[success_count++<br/>记录 success]
+    DL_RESULT -->|失败| DL_FAIL[记录 failed<br/>尝试下一个]
+
+    DL_SUCCESS --> DOWNLOAD_LOOP
+    DL_FAIL --> DOWNLOAD_LOOP
+    SKIP_EN --> DOWNLOAD_LOOP
+
+    %% ═══════════════════════════════════════
+    %% 第二阶段: 英文补充判断
+    %% ═══════════════════════════════════════
+    PHASE2
+
+    subgraph PHASE2 [第二阶段: 英文补充 need_en 判断]
+        direction TB
+        P1[计算 zh_best_pct<br/>遍历 provider_results<br/>非英文最高 score_pct]
+        P1 --> P2[计算 zh_downloaded<br/>任一非英文 status=success?]
+
+        P2 --> COND_A{条件A: 零中文<br/>zh_best_pct == 0}
+        P2 --> COND_B{条件B: 低分<br/>0 < zh_best_pct<br/>< en_threshold 72%}
+        P2 --> COND_C{条件C: 稀缺+勉强<br/>eligible ≤ 1<br/>AND zh_best_pct<br/>< 72% + 15% = 87%}
+        P2 --> COND_D{条件D: 下载全挂<br/>zh_best_pct > 0<br/>AND NOT zh_downloaded}
+
+        COND_A --> NEED_EN[need_en = A ∨ B ∨ C ∨ D]
+        COND_B --> NEED_EN
+        COND_C --> NEED_EN
+        COND_D --> NEED_EN
+    end
+
+    PHASE2 --> NEED_EN_CHECK{need_en = True<br/>AND 没有英文字幕?}
+
+    NEED_EN_CHECK -->|No| FINAL
+    NEED_EN_CHECK -->|Yes| EN_SEARCH
+
+    %% ═══════════════════════════════════════
+    %% 英文搜索与下载
+    %% ═══════════════════════════════════════
+    subgraph EN_SEARCH [搜索并下载英文字幕]
+        direction TB
+        ES1{搜索模式}
+        ES1 -->|并发| ES2[所有引擎并行搜索英文]
+        ES1 -->|顺序| ES3[逐引擎搜索<br/>附带 early stop]
+
+        ES3 --> ES_EARLY{某引擎英文<br/>最高分 ≥ 72%?}
+        ES_EARLY -->|Yes 跳过剩余| ES4
+        ES_EARLY -->|No| ES_NEXT[尝试下一个引擎]
+        ES_NEXT --> ES_EARLY
+        ES2 --> ES4
+
+        ES4[_select_en_supplement<br/>筛选英文 eligible<br/>逻辑同 _threshold_pick]
+        ES4 --> ES5[逐个下载英文 eligible]
+        ES5 --> ES6{下载结果}
+        ES6 -->|成功| ES7[en_success++]
+        ES6 -->|失败| ES8[记录 failed]
+        ES7 --> ES9{en_success<br/>≥ max_dl?}
+        ES8 --> ES9
+        ES9 -->|No 继续下载| ES5
+        ES9 -->|Yes| ES_DONE[英文补充完成]
+    end
+
+    EN_SEARCH --> FINAL
+
+    %% ═══════════════════════════════════════
+    %% 最终结果判定
+    %% ═══════════════════════════════════════
+    FINAL{downloaded 有效?<br/>后缀 ∈ SUBTITLE_EXT}
+
+    FINAL -->|Yes| SUCCESS[status = success<br/>记录字幕路径<br/>_cleanup_archives]
+    FINAL -->|No| ALL_SKIPPED{全部 skipped?}
+
+    ALL_SKIPPED -->|Yes| SKIP_FINAL[status = skipped<br/>已有英文字幕 未找到中文]
+    ALL_SKIPPED -->|No| FAIL_FINAL[status = failed<br/>无可用字幕]
+
+    SUCCESS --> DETECT_LANG[检测下载字幕语言]
+    DETECT_LANG --> CACHE_UPDATE[更新 subtitle_status_cache]
+
+    CACHE_UPDATE --> CACHE_ZH{字幕语言}
+    CACHE_ZH -->|zh / zh+en| CACHE_ZH_VAL[缓存 = zh]
+    CACHE_ZH -->|en| CACHE_EN_VAL[缓存 = en]
+    CACHE_ZH -->|其他| CACHE_NONE_VAL[缓存 = none]
+
+    %% ═══════════════════════════════════════
+    %% 样式
+    %% ═══════════════════════════════════════
+    classDef ignored fill:#6c757d,stroke:#495057,color:#fff
+    classDef skipped fill:#ffc107,stroke:#e0a800,color:#000
+    classDef success fill:#28a745,stroke:#1e7e34,color:#fff
+    classDef failed fill:#dc3545,stroke:#bd2130,color:#fff
+    classDef decision fill:#17a2b8,stroke:#117a8b,color:#fff
+    classDef process fill:#4a90d9,stroke:#2d6cb4,color:#fff
+    classDef condition fill:#e83e8c,stroke:#c22378,color:#fff
+    classDef subg fill:#1a1a2e,stroke:#2d2d44,color:#e0e0e0
+
+    class IGNORE1,IGNORE2,IGNORE3,IGNORE4 ignored
+    class SKIP1,SKIP2,SKIP_EN,SKIP_FINAL skipped
+    class SUCCESS,DL_SUCCESS,ES7 success
+    class FAIL_FINAL,DL_FAIL failed
+    class AUTO_DL,EVT_TYPE,FILE_EXISTS,IS_VIDEO,HAS_SUB1,CHECK_ZH_LIVE,REMAP_OK,SEARCH_MODE,DOWNLOAD_LOOP,IS_EN_RESULT,HAS_EN_ALREADY,DL_RESULT,NEED_EN_CHECK,FINAL,ALL_SKIPPED decision
+    class ENQUEUE,WORKER,DO_DOWNLOAD,DETECT_LANG,CACHE_UPDATE process
+    class COND_A,COND_B,COND_C,COND_D condition
