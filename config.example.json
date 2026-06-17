@@ -67,5 +67,20 @@
   "ai_review_model": "H20/agent",
   "ai_review_timeout": 300,
   "ai_review_prompt": "",
-  "queue_max_size": 100
+  "queue_max_size": 100,
+  "douban_enabled": false,
+  "douban_user_id": "YOUR_DOUBAN_USER_ID",
+  "douban_check_interval_hours": 12,
+  "tmdb_api_key": "YOUR_TMDB_API_KEY",
+  "radarr_quality_profile_en": 7,
+  "radarr_quality_profile_other": 9,
+  "radarr_root_folder_path": "/video/Movies",
+  "dingtalk_enabled": false,
+  "dingtalk_webhook_url": "YOUR_DINGTALK_WEBHOOK_URL",
+  "douban_baseline": {
+    "movie_name": "",
+    "add_date": ""
+  },
+  "douban_last_check": "",
+  "douban_history": []
 }

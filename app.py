@@ -3,7 +3,7 @@ import contextlib
 import io
 import json
 import os
-import re
+import logging
 import sys
 import time
 import uuid
@@ -16,6 +16,9 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+import douban_monitor
+
+logger = logging.getLogger(__name__)
 
 VIDEO_ROOT = Path(os.environ.get("VIDEO_ROOT", "/volume1/video"))
 PORT = int(os.environ.get("PORT", "19030"))
@@ -74,6 +77,18 @@ DEFAULT_CONFIG = {
     "ai_review_timeout": 300,
     "ai_review_prompt": "",
     "queue_max_size": 100,
+    "douban_enabled": False,
+    "douban_user_id": "140463388",
+    "douban_check_interval_hours": 12,
+    "tmdb_api_key": "",
+    "radarr_quality_profile_en": 7,
+    "radarr_quality_profile_other": 9,
+    "radarr_root_folder_path": "/video/Movies",
+    "dingtalk_enabled": False,
+    "dingtalk_webhook_url": "",
+    "douban_baseline": {"movie_name": "", "add_date": ""},
+    "douban_last_check": "",
+    "douban_history": [],
 }
 
 app_config = dict(DEFAULT_CONFIG)
@@ -87,6 +102,8 @@ app_log: deque = deque(maxlen=500)
 _subtitle_status_cache: dict = {}
 SUBTITLE_CACHE_FILE = Path(__file__).parent / "subtitle_status_cache.json"
 
+_douban_last_result: dict = {}
+_douban_history: deque = deque(maxlen=50)
 
 def _get_cached_status(cache_key: str) -> str:
     entry = _subtitle_status_cache.get(cache_key)
@@ -801,6 +818,9 @@ async def startup():
     asyncio.create_task(_download_worker())
     asyncio.create_task(_translate_worker())
 
+    if app_config.get("douban_enabled", False):
+        asyncio.create_task(_douban_monitor_loop())
+
 
 @app.get("/favicon.ico")
 async def favicon():
@@ -877,6 +897,12 @@ async def update_settings(request: Request):
             except ValueError:
                 continue
         app_config[key] = value
+
+    if "douban_check_interval_hours" in body:
+        try:
+            app_config["douban_check_interval_hours"] = int(body["douban_check_interval_hours"])
+        except (ValueError, TypeError):
+            pass
 
     if "video_root" in body:
         VIDEO_ROOT = Path(app_config["video_root"])
@@ -1905,6 +1931,63 @@ async def webhook_sonarr(request: Request):
     return {"status": "queued", "task_id": task_id, "series": series.get("title", "")}
 
 
+
+@app.get("/api/douban/status")
+async def douban_status():
+    """Get Douban monitoring status."""
+    return {
+        "enabled": app_config.get("douban_enabled", False),
+        "user_id": app_config.get("douban_user_id", ""),
+        "check_interval_hours": app_config.get("douban_check_interval_hours", 12),
+        "last_check": app_config.get("douban_last_check", ""),
+        "baseline": app_config.get("douban_baseline", {"movie_name": "", "add_date": ""}),
+        "last_result": _douban_last_result,
+    }
+
+
+@app.post("/api/douban/check")
+async def douban_check():
+    """Manually trigger a Douban check."""
+    if not app_config.get("douban_user_id"):
+        return {"status": "error", "error": "请先配置豆瓣用户ID"}
+    
+    try:
+        result = await asyncio.to_thread(
+            douban_monitor.check_once, app_config
+        )
+        _douban_last_result.update(result)
+        
+        if result.get("added_movies"):
+            for movie in result["added_movies"]:
+                _douban_history.appendleft({
+                    "timestamp": datetime.now().isoformat(),
+                    "action": "added",
+                    "movie_name": movie.get("name", ""),
+                    "original_title": movie.get("original_title", ""),
+                    "year": movie.get("year", ""),
+                })
+        
+        if result.get("failed_movies"):
+            for movie in result["failed_movies"]:
+                _douban_history.appendleft({
+                    "timestamp": datetime.now().isoformat(),
+                    "action": "failed",
+                    "movie_name": movie.get("name", ""),
+                    "reason": movie.get("reason", ""),
+                })
+        
+        _save_config()
+        return result
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@app.get("/api/douban/history")
+async def douban_history():
+    """Get Douban monitoring history."""
+    return list(_douban_history)
+
+
 async def _download_worker():
     while True:
         task_id = await download_queue.get()
@@ -2327,6 +2410,51 @@ async def _translate_worker():
         translate_completed.appendleft(completed)
         _save_queue_data()
         translate_items.pop(task_id, None)
+
+
+async def _douban_monitor_loop():
+    while True:
+        try:
+            interval_hours = app_config.get("douban_check_interval_hours", 12)
+            if not app_config.get("douban_enabled", False):
+                await asyncio.sleep(60)
+                continue
+
+            logger.info("Douban monitor: starting check...")
+            result = await asyncio.to_thread(
+                douban_monitor.check_once, app_config
+            )
+
+            _douban_last_result.update(result)
+
+            if result.get("added_movies"):
+                for movie in result["added_movies"]:
+                    _douban_history.appendleft({
+                        "timestamp": datetime.now().isoformat(),
+                        "action": "added",
+                        "movie_name": movie.get("name", ""),
+                        "original_title": movie.get("original_title", ""),
+                        "year": movie.get("year", ""),
+                    })
+
+            if result.get("failed_movies"):
+                for movie in result["failed_movies"]:
+                    _douban_history.appendleft({
+                        "timestamp": datetime.now().isoformat(),
+                        "action": "failed",
+                        "movie_name": movie.get("name", ""),
+                        "reason": movie.get("reason", ""),
+                    })
+
+            _save_config()
+
+            logger.info(f"Douban monitor: check complete. Added: {result.get('new_movies_count', 0)}")
+
+        except Exception as e:
+            logger.error(f"Douban monitor loop error: {e}")
+
+        interval_hours = app_config.get("douban_check_interval_hours", 12)
+        await asyncio.sleep(interval_hours * 3600)
 
 
 if __name__ == "__main__":

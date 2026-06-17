@@ -10,14 +10,20 @@
             --bg: #1a1a2e;
             --bg-deep: #16213e;
             --bg-card: #1a2744;
+            --bg-hover: rgba(255,255,255,0.03);
+            --surface-elevated: #1e2d4a;
+            --skeleton-bg: rgba(255,255,255,0.06);
+            --skeleton-shine: rgba(255,255,255,0.12);
             --border: #0f3460;
             --accent: #16c79a;
             --accent-hover: #12a37d;
+            --accent-glow: rgba(22,199,154,0.25);
             --danger: #e74c3c;
             --danger-hover: #c0392b;
             --warning: #ffc107;
             --text: #e0e0e0;
             --text-dim: #888;
+            --text-bright: #f0f0f0;
             --color-blue: #3498db;
             --color-purple: #9b59b6;
             --color-green: #27ae60;
@@ -29,6 +35,10 @@
             --shadow-md: 0 4px 20px rgba(0,0,0,0.3);
             --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
             --focus-ring: 0 0 0 2px rgba(22,199,154,0.4);
+
+            /* Transition tokens */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
 
             /* Spacing scale (4px base) */
             --space-xs: 4px;
@@ -47,7 +57,15 @@
             --text-xl: 1.4rem;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+        /* Custom scrollbar — dark theme */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent; }
+
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: var(--focus-ring); }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--bg);
@@ -96,12 +114,29 @@
             padding: 12px 16px; color: var(--text-dim);
             text-decoration: none; cursor: pointer; border: none;
             background: none; width: 100%; text-align: left;
-            font-size: 0.95rem; transition: all 0.2s; border-left: 3px solid transparent;
+            font-size: 0.95rem; transition: all var(--transition-normal); border-left: 3px solid transparent;
+            position: relative;
         }
         .nav-item:hover { color: var(--text); background: rgba(22,199,154,0.06); }
         .nav-item.active { color: var(--accent); background: rgba(22,199,154,0.1); border-left-color: var(--accent); }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 60%;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
         .nav-item:focus-visible { box-shadow: var(--focus-ring) inset; }
-        .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
+        .nav-icon {
+            font-size: 1.1rem; width: 32px; height: 32px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 8px; background: rgba(255,255,255,0.04);
+            flex-shrink: 0; transition: background var(--transition-fast);
+        }
+        .nav-item:hover .nav-icon { background: rgba(22,199,154,0.1); }
+        .nav-item.active .nav-icon { background: rgba(22,199,154,0.15); }
         .main-wrap {
             flex: 1; margin-left: 220px; display: flex; flex-direction: column; min-height: 100vh;
         }
@@ -118,19 +153,217 @@
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 99;
         }
-        #page-content { flex: 1; padding: 24px; max-width: 1400px; width: 100%; }
+        #page-content {
+            flex: 1; padding: 24px; max-width: 1400px; width: 100%;
+            animation: pageFadeIn 0.25s ease;
+        }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .page-title {
             font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; color: var(--text);
         }
         .card {
             background: var(--bg-card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
         }
+        .card:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
         .card-title {
             font-size: 1rem; font-weight: 600; margin-bottom: 16px;
             color: var(--accent); border-bottom: 1px solid var(--border);
             padding-bottom: 8px;
         }
+
+        /* Form group — card with icon header for settings pages */
+        .form-group {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .form-group:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .form-group-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 16px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .form-group-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
+            background: rgba(22,199,154,0.1); color: var(--accent);
+        }
+        .form-group-title {
+            font-size: 1rem; font-weight: 600; color: var(--accent);
+        }
+
+        /* Sensitive input wrapper — for API key show/hide */
+        .sensitive-input-wrapper {
+            display: flex; align-items: center; gap: 0; flex: 1; min-width: 200px;
+        }
+        .sensitive-input-wrapper .form-input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: none;
+        }
+        .sensitive-toggle {
+            background: var(--bg); border: 1px solid var(--border);
+            border-left: none; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            color: var(--text-dim); cursor: pointer;
+            padding: 0 10px; height: 37px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1rem; transition: color var(--transition-fast), background var(--transition-fast);
+        }
+        .sensitive-toggle:hover { color: var(--accent); background: rgba(22,199,154,0.06); }
+        .sensitive-toggle.active { color: var(--accent); }
+
+        /* Empty state illustration */
+        .empty-state-illustration {
+            width: 120px; height: 120px; margin: 0 auto 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(22,199,154,0.08) 0%, rgba(15,52,96,0.3) 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; position: relative;
+        }
+        .empty-state-illustration::before {
+            content: '';
+            position: absolute; inset: 4px;
+            border-radius: 50%;
+            border: 2px dashed rgba(22,199,154,0.2);
+        }
+
+        /* Skeleton loading */
+        @keyframes skeletonShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg,
+                var(--skeleton-bg) 25%,
+                var(--skeleton-shine) 37%,
+                var(--skeleton-bg) 63%
+            );
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.5s ease infinite;
+            border-radius: var(--radius-sm);
+        }
+        .skeleton-text { height: 14px; margin-bottom: 8px; border-radius: 4px; }
+        .skeleton-text.short { width: 40%; }
+        .skeleton-text.medium { width: 70%; }
+        .skeleton-text.long { width: 90%; }
+        .skeleton-card { height: 200px; border-radius: var(--radius); margin-bottom: 12px; }
+        .skeleton-row { height: 40px; margin-bottom: 8px; border-radius: var(--radius-sm); }
+
+        /* Zebra stripe */
+        .zebra-stripe > :nth-child(even) {
+            background: var(--bg-hover);
+        }
+
+        /* Badge pulse animation */
+        @keyframes badgePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .badge-pulse {
+            animation: badgePulse 1.5s ease infinite;
+        }
+
+        /* Active dot pulse */
+        @keyframes dotPulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 0 0 6px rgba(22,199,154,0); }
+        }
+        .active-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: dotPulse 1.5s ease infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* Film reel CSS illustration for movies empty state */
+        .film-reel-icon {
+            width: 80px; height: 80px; margin: 0 auto 16px;
+            border: 4px solid rgba(22,199,154,0.3);
+            border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .film-reel-icon::before {
+            content: '';
+            width: 16px; height: 16px;
+            background: rgba(22,199,154,0.4);
+            border-radius: 50%;
+        }
+        .film-reel-icon::after {
+            content: '';
+            position: absolute;
+            width: 80px; height: 80px;
+            border: 4px dotted rgba(22,199,154,0.15);
+            border-radius: 50%;
+            animation: spin 8s linear infinite;
+        }
+        .film-reel-hole {
+            position: absolute;
+            width: 10px; height: 10px;
+            background: var(--bg);
+            border-radius: 50%;
+        }
+        .film-reel-hole:nth-child(1) { top: 4px; left: 50%; transform: translateX(-50%); }
+        .film-reel-hole:nth-child(2) { bottom: 4px; left: 50%; transform: translateX(-50%); }
+        .film-reel-hole:nth-child(3) { left: 4px; top: 50%; transform: translateY(-50%); }
+        .film-reel-hole:nth-child(4) { right: 4px; top: 50%; transform: translateY(-50%); }
+
+        /* Skeleton for series expansion */
+        .skeleton-episode {
+            padding: 12px 16px 12px 28px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .skeleton-ep-num { width: 50px; height: 14px; }
+        .skeleton-ep-title { flex: 1; height: 14px; }
+        .skeleton-ep-badge { width: 24px; height: 18px; border-radius: 3px; }
+        .skeleton-ep-btn { width: 48px; height: 28px; border-radius: var(--radius-sm); }
+
+        /* Log level filter tabs */
+        .log-filter-tabs {
+            display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .log-filter-tab {
+            padding: 6px 14px; border-radius: var(--radius-sm);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-dim); transition: all var(--transition-fast);
+        }
+        .log-filter-tab:hover { border-color: var(--accent); color: var(--text); }
+        .log-filter-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+        .log-filter-tab.active.error { background: var(--danger); border-color: var(--danger); }
+        .log-filter-tab.active.warning { background: var(--warning); color: var(--bg-deep); border-color: var(--warning); }
+
+        /* Log message truncation */
+        .log-line { cursor: pointer; transition: color var(--transition-fast); }
+        .log-line:hover { color: var(--text-bright); }
+        .log-line-msg {
+            display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .log-line.expanded .log-line-msg {
+            -webkit-line-clamp: unset; display: inline;
+        }
+        .log-line .log-expand-hint {
+            font-size: 0.7rem; color: var(--accent); margin-left: 4px;
+            opacity: 0; transition: opacity var(--transition-fast);
+        }
+        .log-line:hover .log-expand-hint { opacity: 1; }
+        .log-line.expanded .log-expand-hint { display: none; }
+        .log-level-error { color: var(--danger); }
+        .log-level-warning { color: var(--warning); }
+        .log-level-info { color: var(--text-dim); }
+
+        /* Breadcrumb home icon */
+        .breadcrumb-home { font-size: 1.1rem; }
         .form-row {
             display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
         }
@@ -156,30 +389,32 @@
             background: var(--bg); color: var(--text); border: 1px solid var(--border);
             border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.9rem;
             flex: 1; min-width: 200px;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .form-textarea { min-height: 80px; resize: vertical; font-family: monospace; font-size: 0.9rem; }
         .form-checkbox { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
         .btn {
             padding: 8px 16px; border: none; border-radius: var(--radius-sm);
-            font-size: 0.9rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            font-size: 0.9rem; cursor: pointer; transition: all var(--transition-fast); white-space: nowrap;
             display: inline-flex; align-items: center; gap: 6px;
         }
         .btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px var(--accent-glow); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-loading { pointer-events: none; opacity: 0.7; position: relative; }
         .btn-loading .spinner { width: 14px; height: 14px; border-width: 2px; }
         .btn-danger { background: var(--danger); color: var(--bg); }
-        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-danger:hover { background: var(--danger-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
         .btn:focus-visible { box-shadow: var(--focus-ring); }
         .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
         .btn-outline {
             background: transparent; border: 1px solid var(--border); color: var(--text);
         }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(22,199,154,0.15); }
         .spinner {
             display: inline-block; width: 16px; height: 16px;
             border: 2px solid var(--text-dim); border-top-color: var(--accent);
@@ -190,12 +425,18 @@
             position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
             z-index: 9999;
             display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;
+            max-height: 40vh; overflow-y: auto;
         }
         .toast {
             padding: 12px 20px; border-radius: var(--radius-sm);
-            font-size: 0.9rem; animation: fadeIn 0.3s; pointer-events: auto;
+            font-size: 0.9rem; pointer-events: auto;
             max-width: 400px; word-break: break-word;
             display: flex; align-items: center; gap: 8px;
+            animation: toastSlideUp 0.35s ease;
+        }
+        @keyframes toastSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .toast-dismiss {
             background: none; border: none; color: inherit; opacity: 0.5;
@@ -213,14 +454,15 @@
         }
         .movie-card {
             background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: var(--radius); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: var(--radius); overflow: hidden;
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
             display: flex; flex-direction: column; height: 100%;
         }
-        .movie-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .movie-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: var(--shadow-md); }
         .movie-poster {
-            background: var(--bg-deep);
+            background: linear-gradient(135deg, var(--bg-deep) 0%, rgba(15,52,96,0.6) 50%, var(--bg-deep) 100%);
             display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; color: var(--border);
+            font-size: 3rem; color: rgba(22,199,154,0.3);
             aspect-ratio: 2/3; overflow: hidden; position: relative;
         }
         .movie-poster img {
@@ -240,10 +482,12 @@
         .series-item {
             background: var(--bg-card); border: 1px solid var(--border);
             border-radius: var(--radius-sm); overflow: hidden;
+            transition: border-color var(--transition-normal);
         }
+        .series-item.expanded { border-left: 3px solid var(--accent); }
         .series-header {
             display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            cursor: pointer; transition: background 0.15s;
+            cursor: pointer; transition: background var(--transition-fast);
         }
         .series-header:hover { background: rgba(22,199,154,0.05); }
         .series-poster { width: 40px; height: 60px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
@@ -257,10 +501,12 @@
         .episode-item {
             display: flex; align-items: center; gap: 10px;
             padding: 12px 16px 12px 28px; border-bottom: 1px solid var(--border);
-            transition: background 0.15s;
+            transition: background var(--transition-fast);
         }
         .episode-item:last-child { border-bottom: none; }
         .episode-item:hover { background: rgba(22,199,154,0.05); }
+        .episode-item:nth-child(even) { background: var(--bg-hover); }
+        .episode-item:nth-child(even):hover { background: rgba(22,199,154,0.07); }
         .episode-num { font-size: 0.9rem; color: var(--accent); font-weight: 600; min-width: 50px; }
         .episode-title-text { flex: 1; font-size: 0.9rem; word-break: break-word; }
         .episode-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
@@ -293,16 +539,17 @@
         .queue-status.error { color: var(--danger); }
         .queue-status.skipped { color: var(--color-gray); }
 
-        /* Progress bar */
+        /* Progress bar — increased height + glow */
         .progress-bar {
-            width: 100%; height: 6px; background: var(--bg); border-radius: 3px;
+            width: 100%; height: 8px; background: var(--bg); border-radius: 4px;
             overflow: hidden; margin-top: 4px;
         }
         .progress-bar-fill {
-            height: 100%; border-radius: 3px; transition: width 0.4s ease;
+            height: 100%; border-radius: 4px; transition: width 0.4s ease;
             background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
         }
-        .progress-bar-fill.error { background: var(--danger); }
+        .progress-bar-fill.error { background: var(--danger); box-shadow: 0 0 8px rgba(231,76,60,0.3); }
         .progress-bar-text { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
         .breadcrumb {
             display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
@@ -315,7 +562,8 @@
         .entry-list { list-style: none; }
         .entry-item {
             display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s;
+            padding: 12px 16px; border-bottom: 1px solid var(--border);
+            transition: background var(--transition-fast);
         }
         .entry-item:last-child { border-bottom: none; }
         .entry-item:hover { background: rgba(22,199,154,0.04); }
@@ -402,8 +650,8 @@
         .season-tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
         .season-tab .tab-count { font-weight: 400; opacity: 0.7; margin-left: 4px; font-size: 0.72rem; }
 
-        /* Episode dimmed */
-        .episode-item.dimmed { opacity: 0.5; }
+        /* Episode dimmed — improved readability */
+        .episode-item.dimmed { filter: saturate(0.3); opacity: 0.6; }
         .episode-item.dimmed .btn { pointer-events: none; }
 
         @media (max-width: 768px) {
@@ -418,6 +666,7 @@
             .form-row { flex-direction: column; align-items: flex-start; }
             .form-label { width: auto; min-width: 0; }
             .form-input, .form-select, .form-textarea { width: 100%; min-width: 0; }
+            .sensitive-input-wrapper { width: 100%; min-width: 0; }
             .episode-item { flex-wrap: wrap; }
             .episode-actions { width: 100%; margin-top: 6px; }
             .entry-item { flex-wrap: wrap; }
@@ -527,6 +776,7 @@
             .queue-card .spinner { width: 14px; height: 14px; border-width: 2px; }
             .card { padding: 12px; margin-bottom: 12px; }
             .card-title { font-size: 0.95rem; margin-bottom: 12px; padding-bottom: 6px; }
+            .form-group { padding: 12px; }
             .form-label { width: 100%; font-weight: 600; font-size: 0.95rem; color: var(--text); margin-bottom: 2px; }
             .form-label:empty { display: none; }
             .form-row { gap: 8px; margin-bottom: 16px; }
@@ -543,6 +793,8 @@
             .webhook-urls code { word-break: break-all; display: inline-block; max-width: 100%; line-height: 1.6; }
             .btn-save { width: 100%; justify-content: center; }
             .form-hint { word-break: break-word; line-height: 1.6; }
+            .log-filter-tabs { gap: 4px; }
+            .log-filter-tab { padding: 4px 10px; font-size: 0.75rem; }
         }
         .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; justify-content:center; align-items:center; }
         .modal-overlay.show { display:flex; }
@@ -649,6 +901,7 @@
     var _searchBtnRef = null;
     var _seriesSeasonTab = {};
     var _seriesDataCache = [];
+    var _logFilter = 'all';
 
     var PAGE_TITLES = {
         'movies': '电影',
@@ -662,6 +915,8 @@
 
     fetch('/api/settings').then(function(r) { return r.json(); }).then(function(s) {
         _config = s;
+        loadDoubanSettings();
+        loadDoubanHistory();
         navigateTo('movies');
     }).catch(function() {
         navigateTo('movies');
@@ -680,6 +935,61 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
     function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+    /* Skeleton loading helper */
+    function showSkeleton(type, count) {
+        count = count || 3;
+        var html = '';
+        if (type === 'card') {
+            for (var i = 0; i < count; i++) {
+                html += '<div class="skeleton skeleton-card"></div>';
+            }
+        } else if (type === 'row') {
+            for (var i = 0; i < count; i++) {
+                html += '<div class="skeleton skeleton-row"></div>';
+            }
+        } else if (type === 'episode') {
+            for (var i = 0; i < count; i++) {
+                html += '<div class="skeleton-episode">';
+                html += '<div class="skeleton skeleton-ep-num"></div>';
+                html += '<div class="skeleton skeleton-ep-title"></div>';
+                html += '<div class="skeleton skeleton-ep-badge"></div>';
+                html += '<div class="skeleton skeleton-ep-btn"></div>';
+                html += '</div>';
+            }
+        } else if (type === 'text') {
+            html += '<div class="skeleton skeleton-text long"></div>';
+            html += '<div class="skeleton skeleton-text medium"></div>';
+            html += '<div class="skeleton skeleton-text short"></div>';
+        }
+        return html;
+    }
+
+    /* Sensitive input toggle helper */
+    function toggleSensitiveInput(btn) {
+        var wrapper = btn.parentElement;
+        var input = wrapper.querySelector('.form-input');
+        if (!input) return;
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+            btn.classList.add('active');
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁';
+            btn.classList.remove('active');
+        }
+    }
+
+    /* Sensitive input wrapper HTML helper */
+    function sensitiveInput(id, value, placeholder, type) {
+        type = type || 'password';
+        var html = '<div class="sensitive-input-wrapper">';
+        html += '<input class="form-input" id="' + id + '" type="' + type + '" value="' + esc(value || '') + '" placeholder="' + esc(placeholder || '') + '">';
+        html += '<button class="sensitive-toggle" onclick="toggleSensitiveInput(this)" tabindex="-1" title="显示/隐藏">👁</button>';
+        html += '</div>';
+        return html;
+    }
 
     /* Unified button loading state */
     function btnLoading(btn, text) {
@@ -735,6 +1045,12 @@
         sb.classList.remove('open');
         ov.classList.remove('open');
         document.getElementById('top-bar-title').textContent = PAGE_TITLES[page] || '';
+
+        // Page transition: re-trigger animation
+        var content = document.getElementById('page-content');
+        content.style.animation = 'none';
+        content.offsetHeight; // force reflow
+        content.style.animation = '';
 
         switch (page) {
             case 'movies': showMovies(); break;
@@ -1171,7 +1487,9 @@
         html += '</div>';
 
         if (!movies.length) {
-            html += '<div class="empty-state"><div class="empty-state-icon">🎬</div><p>暂无电影数据，请检查 Radarr 配置</p></div>';
+            html += '<div class="empty-state">';
+            html += '<div class="film-reel-icon"><div class="film-reel-hole"></div><div class="film-reel-hole"></div><div class="film-reel-hole"></div><div class="film-reel-hole"></div></div>';
+            html += '<p>暂无电影数据，请检查 Radarr 配置</p></div>';
         } else {
             html += '<div class="movie-grid">';
             movies.forEach(function(m) {
@@ -1262,7 +1580,7 @@
             _seriesDataCache = series;
             var html = '<div class="page-title" style="display:flex;align-items:center;justify-content:space-between">电视剧<div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" id="series-refresh-btn" onclick="refreshSeries(this)">⟳ 刷新</button><button class="btn btn-primary btn-sm" id="series-sync-btn" onclick="syncSeriesSubtitles(this)">同步字幕</button></div></div>';
             if (!series.length) {
-                html += '<div class="empty-state"><div class="empty-state-icon">📺</div><p>暂无电视剧数据，请先刷新数据</p></div>';
+                html += '<div class="empty-state"><div class="empty-state-illustration">📺</div><p>暂无电视剧数据，请先刷新数据</p></div>';
             } else {
                 html += '<div class="series-list">';
                 series.forEach(function(s) {
@@ -1275,7 +1593,7 @@
                             }
                         });
                     }
-                    html += '<div class="series-item">';
+                    html += '<div class="series-item" id="series-item-' + s.id + '">';
                     html += '<div class="series-header" onclick="toggleSeries(' + s.id + ',this)">';
                     if (s.poster) {
                         html += '<img class="series-poster" src="' + esc(s.poster) + '" onerror="this.style.display=\'none\'">';
@@ -1300,15 +1618,19 @@
     function toggleSeries(seriesId, headerEl) {
         var list = document.getElementById('episodes-' + seriesId);
         var expand = document.getElementById('expand-' + seriesId);
+        var item = document.getElementById('series-item-' + seriesId);
         if (list.classList.contains('open')) {
             list.classList.remove('open');
             expand.classList.remove('open');
+            if (item) item.classList.remove('expanded');
             return;
         }
         expand.classList.add('open');
         list.classList.add('open');
+        if (item) item.classList.add('expanded');
         if (list.dataset.loaded) return;
-        list.innerHTML = '<div style="padding:12px;text-align:center"><span class="spinner"></span> 加载中...</div>';
+        // Show skeleton loading
+        list.innerHTML = showSkeleton('episode', 5);
 
         var series = _seriesDataCache.find(function(s) { return s.id === seriesId; }) || {};
         var seasons = series.seasons || [];
@@ -1341,7 +1663,8 @@
 
     function loadSeasonEpisodes(seriesId, seasonNumber) {
         var container = document.getElementById('season-episodes-' + seriesId);
-        container.innerHTML = '<div style="padding:12px;text-align:center"><span class="spinner"></span> 加载中...</div>';
+        // Show skeleton while loading
+        container.innerHTML = showSkeleton('episode', 6);
         fetch('/api/series/' + seriesId + '/episodes?season=' + seasonNumber).then(function(r) { return r.json(); }).then(function(data) {
             var eps = data.episodes || data || [];
             if (!eps.length) {
@@ -1434,7 +1757,7 @@
                     html += '<div class="queue-card-header">';
                     html += '<span class="queue-card-filename" title="' + esc(fileName) + '">' + esc(fileName) + '</span>';
                     html += '<span class="log-status ' + mainStClass + '">' + esc(mainStText) + '</span>';
-                    if (mainSt === 'queued' || mainSt === 'downloading') html += ' <span class="spinner"></span>';
+                    if (mainSt === 'queued' || mainSt === 'downloading') html += ' <span class="active-dot"></span>';
                     html += '</div>';
                     html += '<div class="queue-card-meta">';
                     if (timeStr) {
@@ -1508,7 +1831,7 @@
                     html += '<td>' + (scores || '—') + '</td>';
                     html += '<td>' + esc(modeText) + '</td>';
                     html += '<td><span class="log-status ' + mainStClass + '">' + esc(mainStText) + '</span>';
-                    if (mainSt === 'queued' || mainSt === 'downloading') html += ' <span class="spinner"></span>';
+                    if (mainSt === 'queued' || mainSt === 'downloading') html += ' <span class="active-dot"></span>';
                     html += '</td>';
                     html += '<td>' + (hasDetail ? '<span class="detail-toggle" data-target="dl-detail-'+ti+'" onclick="toggleDetail(this)" style="cursor:pointer;opacity:0.6" title="详情">▸</span>' : '') + '</td>';
                     html += '</tr>';
@@ -1567,7 +1890,7 @@
                     html += '<div class="queue-card-header">';
                     html += '<span class="queue-card-filename" title="' + esc(subName) + '">' + esc(subName) + '</span>';
                     html += '<span class="log-status ' + stClass + '">' + esc(stText) + '</span>';
-                    if (isActive) html += ' <span class="spinner"></span>';
+                    if (isActive) html += ' <span class="active-dot"></span>';
                     html += '</div>';
                     html += '<div class="queue-card-meta">';
                     if (timeStr) {
@@ -1606,7 +1929,7 @@
                     html += '<td style="white-space:nowrap;font-size:0.85rem">' + esc(durStr) + '</td>';
                     html += '<td style="min-width:90px">';
                     html += '<span class="log-status ' + stClass + '">' + esc(stText) + '</span>';
-                    if (isActive) html += ' <span class="spinner"></span>';
+                    if (isActive) html += ' <span class="active-dot"></span>';
                     if (pct && pct > 0) {
                         var barClass = st === 'failed' || st === 'error' ? ' error' : '';
                         html += '<div class="progress-bar"><div class="progress-bar-fill' + barClass + '" style="width:' + Math.min(pct, 100) + '%"></div></div>';
@@ -1662,6 +1985,7 @@
     function renderBrowse(data) {
         var html = '<div class="page-title">目录浏览</div>';
         html += '<div class="breadcrumb">';
+        html += '<span class="breadcrumb-home">🏠</span> ';
         var parts = data.path ? data.path.split('/') : [];
         var rootName = parts[0] || '';
         html += '<a onclick="browseTo(\'\')">根目录</a>';
@@ -1712,8 +2036,15 @@
     }
 
     function showLogs() {
+        _logFilter = 'all';
         var html = '<div class="page-title">后台日志</div>';
-        html += '<div style="display:flex;gap:8px;margin-bottom:16px">';
+        html += '<div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">';
+        html += '<div class="log-filter-tabs">';
+        html += '<button class="log-filter-tab active" onclick="filterLogs(\'all\',this)">All</button>';
+        html += '<button class="log-filter-tab error" onclick="filterLogs(\'error\',this)">Error</button>';
+        html += '<button class="log-filter-tab warning" onclick="filterLogs(\'warning\',this)">Warning</button>';
+        html += '<button class="log-filter-tab" onclick="filterLogs(\'info\',this)">Info</button>';
+        html += '</div>';
         html += '<div style="flex:1"></div>';
         html += '<button class="btn btn-outline btn-sm" onclick="refreshLogs()">🔄 刷新</button>';
         html += '<button class="btn btn-danger btn-sm" onclick="clearCurrentLogs()">清除记录</button>';
@@ -1723,22 +2054,51 @@
         refreshLogs();
     }
 
+    var _rawLogsData = [];
+
     function refreshLogs() {
         fetch('/api/app-logs').then(function(r) { return r.json(); }).then(function(data) {
-            var el = document.getElementById('log-content');
-            if (!data || !data.length) {
-                el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>暂无记录</p></div>';
-                return;
-            }
-            var html = '<div style="background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:monospace;font-size:0.8rem;max-height:70vh;overflow-y:auto;line-height:1.7;white-space:pre-wrap;word-break:break-all">';
-            data.forEach(function(log) {
-                html += '<span style="color:var(--text-dim)">' + esc(log.timestamp) + '</span> ' + esc(log.message) + '\n';
-            });
-            html += '</div>';
-            el.innerHTML = html;
+            _rawLogsData = data || [];
+            renderFilteredLogs();
         }).catch(function() {
             document.getElementById('log-content').innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>加载失败</p></div>';
         });
+    }
+
+    function filterLogs(level, btn) {
+        _logFilter = level;
+        document.querySelectorAll('.log-filter-tab').forEach(function(t) { t.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        renderFilteredLogs();
+    }
+
+    function renderFilteredLogs() {
+        var data = _rawLogsData;
+        var el = document.getElementById('log-content');
+        if (!data || !data.length) {
+            el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>暂无记录</p></div>';
+            return;
+        }
+        var html = '<div style="background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:monospace;font-size:0.8rem;max-height:70vh;overflow-y:auto;line-height:1.7;white-space:pre-wrap;word-break:break-all">';
+        data.forEach(function(log) {
+            var msg = log.message || '';
+            var levelClass = 'log-level-info';
+            if (_logFilter !== 'all') {
+                var msgLower = msg.toLowerCase();
+                if (_logFilter === 'error' && msgLower.indexOf('error') === -1 && msgLower.indexOf('exception') === -1 && msgLower.indexOf('traceback') === -1) return;
+                if (_logFilter === 'warning' && msgLower.indexOf('warning') === -1 && msgLower.indexOf('warn') === -1) return;
+                if (_logFilter === 'info' && (msgLower.indexOf('error') >= 0 || msgLower.indexOf('warning') >= 0 || msgLower.indexOf('warn') >= 0)) return;
+            }
+            if (msg.toLowerCase().indexOf('error') >= 0 || msg.toLowerCase().indexOf('exception') >= 0) levelClass = 'log-level-error';
+            else if (msg.toLowerCase().indexOf('warning') >= 0 || msg.toLowerCase().indexOf('warn') >= 0) levelClass = 'log-level-warning';
+            html += '<div class="log-line ' + levelClass + '" onclick="this.classList.toggle(\'expanded\')">';
+            html += '<span style="color:var(--text-dim)">' + esc(log.timestamp) + '</span> ';
+            html += '<span class="log-line-msg">' + esc(msg) + '</span>';
+            html += '<span class="log-expand-hint">▸</span>';
+            html += '</div>\n';
+        });
+        html += '</div>';
+        el.innerHTML = html;
     }
 
     function clearCurrentLogs() {
@@ -1752,14 +2112,18 @@
         var c = _config;
         var html = '<div class="page-title">翻译设置</div>';
 
-        html += '<div class="card"><div class="card-title">API 连接</div>';
+        // API Connection group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🔑</span><span class="form-group-title">API 配置</span></div>';
         html += '<div class="form-row"><span class="form-label">API URL</span><input class="form-input" id="tc-api-url" value="' + esc(c.ai_api_url || '') + '" placeholder="https://api.openai.com/v1"></div>';
-        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="tc-api-key" type="password" value="' + esc(c.ai_api_key || '') + '" placeholder="sk-..."></div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span>' + sensitiveInput('tc-api-key', c.ai_api_key || '', 'sk-...') + '</div>';
         html += '<div class="form-row"><span class="form-label">模型</span><input class="form-input" id="tc-model" value="' + esc(c.ai_model || 'gpt-4o-mini') + '" placeholder="gpt-4o-mini"></div>';
         html += '<div style="margin-top:8px"><button class="btn btn-outline" id="tc-test-btn" onclick="testAiConnection(this)">测试连接</button> <span id="tc-test-result" style="margin-left:8px;font-size:13px"></span></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">翻译语言</div>';
+        // Translation Language group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🤖</span><span class="form-group-title">AI 翻译</span></div>';
         html += '<div class="form-row"><span class="form-label">源语言</span><select class="form-select" id="tc-source-lang">';
         ['English','Spanish','Danish','French'].forEach(function(l) {
             html += '<option value="' + l + '"' + (c.ai_source_lang === l ? ' selected' : '') + '>' + l + '</option>';
@@ -1769,7 +2133,9 @@
         html += '<div class="form-row"><span class="form-label">双语字幕</span><input class="form-checkbox" id="tc-bilingual" type="checkbox"' + (c.ai_bilingual ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">原文+译文双行显示</span></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">翻译参数</div>';
+        // Translation Parameters group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">📥</span><span class="form-group-title">下载设置</span></div>';
         html += '<div class="form-row"><span class="form-label">批次大小</span><input class="form-input" id="tc-batch-size" type="number" value="' + esc(c.ai_batch_size || 50) + '" min="1" max="100"></div>';
         html += '<div class="form-row"><span class="form-label">并发数</span><input class="form-input" id="tc-concurrency" type="number" value="' + esc(c.ai_concurrency || 2) + '" min="1" max="10"></div>';
         html += '<div class="form-row"><span class="form-label">上下文行数</span><input class="form-input" id="tc-context-lines" type="number" value="' + esc(c.ai_context_lines || 2) + '" min="0" max="10"></div>';
@@ -1780,19 +2146,25 @@
         html += '</select></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">AI 审核</div>';
+        // AI Review group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🔍</span><span class="form-group-title">AI 审核</span></div>';
         html += '<div class="form-row"><span class="form-label">启用审核</span><input class="form-checkbox" id="tc-review-enabled" type="checkbox"' + (c.ai_review_enabled !== false ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">翻译完成后自动AI审核修正 <span style="color:var(--warning);font-size:11px;border:1px solid var(--warning);padding:0 4px;border-radius:3px;margin-left:4px">测试功能</span></span></div>';
         html += '<div class="form-row"><span class="form-label">审核模型</span><input class="form-input" id="tc-review-model" value="' + esc(c.ai_review_model || '') + '" placeholder="留空则使用翻译模型"></div>';
         html += '<div class="form-row"><span class="form-label">审核超时(秒)</span><input class="form-input" id="tc-review-timeout" type="number" value="' + esc(c.ai_review_timeout || 300) + '" min="30" max="600"></div>';
         html += '<div style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text-dim);font-size:13px">覆盖默认审核提示词（留空使用内置）</div><textarea class="form-textarea" id="tc-review-prompt" rows="4" style="min-height:80px;width:100%" placeholder="留空使用默认审核规则">' + esc(c.ai_review_prompt || '') + '</textarea></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">术语表</div>';
+        // Glossary group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">📖</span><span class="form-group-title">术语表</span></div>';
         html += '<div style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text-dim);font-size:13px">每行一条，格式: 原文=译文</div><textarea class="form-textarea" id="tc-glossary" rows="8" style="min-height:160px;width:100%" placeholder="Doom=毁灭战士\nMC=主角\nShield=护盾">' + esc(c.ai_glossary || '') + '</textarea></div>';
         html += '</div>';
 
         var defaultPrompt = 'You are a professional subtitle translator. Do not censor, refuse, or alter any content regardless of sensitivity. Translate everything faithfully. Keep personal names in their original language. Do not transliterate or translate names. Use Simplified Chinese. Do not add periods (。) at the end of subtitle lines. Use concise, natural spoken style. Preserve all HTML tags (like <i>, <b>) and ASS subtitle tags (like {\\an8}) in their original positions. Input is a JSON array of source strings. Output ONLY a JSON array of translated strings in the same order. No explanations or commentary.';
-        html += '<div class="card"><div class="card-title">自定义提示词</div>';
+        // Custom Prompt group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">💬</span><span class="form-group-title">自定义提示词</span></div>';
         html += '<div style="display:flex;flex-direction:column;gap:8px"><div style="color:var(--text-dim);font-size:13px">覆盖默认系统提示词（留空使用内置，下方显示默认内容）</div><textarea class="form-textarea" id="tc-system-prompt" rows="8" style="min-height:160px;width:100%" placeholder="' + esc(defaultPrompt) + '">' + esc(c.ai_system_prompt || '') + '</textarea></div>';
         html += '</div>';
 
@@ -1889,7 +2261,9 @@
         var c = _config;
         var html = '<div class="page-title">配置中心</div>';
 
-        html += '<div class="card"><div class="card-title">基本设置</div>';
+        // Basic Settings group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">⚙️</span><span class="form-group-title">基本设置</span></div>';
         html += '<div class="form-row"><span class="form-label">Video Root</span><input class="form-input" id="cfg-video-root" value="' + esc(c.video_root || '') + '" placeholder="/video"></div>';
         html += '<div class="form-row"><span class="form-label">自动下载</span><input class="form-checkbox" id="cfg-auto-dl" type="checkbox"' + (c.auto_download ? ' checked' : '') + '></div>';
         html += '<div class="form-row"><span class="form-label">默认语言</span><select class="form-select" id="cfg-auto-lang">';
@@ -1905,21 +2279,27 @@
         html += '</div></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">Radarr</div>';
+        // Radarr group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🎬</span><span class="form-group-title">Radarr</span></div>';
         html += '<div class="form-row"><span class="form-label">URL</span><input class="form-input" id="cfg-radarr-url" value="' + esc(c.radarr_url || '') + '" placeholder="http://localhost:7878"></div>';
-        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="cfg-radarr-key" type="password" value="' + esc(c.radarr_api_key || '') + '"></div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span>' + sensitiveInput('cfg-radarr-key', c.radarr_api_key || '', 'API Key') + '</div>';
         html += renderPathMappings('radarr', c.radarr_path_mappings || []);
         html += '<div style="margin-top:4px"><button class="btn btn-outline btn-sm test-btn" onclick="testConnection(\'radarr\')">测试连接</button></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">Sonarr</div>';
+        // Sonarr group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">📺</span><span class="form-group-title">Sonarr</span></div>';
         html += '<div class="form-row"><span class="form-label">URL</span><input class="form-input" id="cfg-sonarr-url" value="' + esc(c.sonarr_url || '') + '" placeholder="http://localhost:8989"></div>';
-        html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="cfg-sonarr-key" type="password" value="' + esc(c.sonarr_api_key || '') + '"></div>';
+        html += '<div class="form-row"><span class="form-label">API Key</span>' + sensitiveInput('cfg-sonarr-key', c.sonarr_api_key || '', 'API Key') + '</div>';
         html += renderPathMappings('sonarr', c.sonarr_path_mappings || []);
         html += '<div style="margin-top:4px"><button class="btn btn-outline btn-sm test-btn" onclick="testConnection(\'sonarr\')">测试连接</button></div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">字幕引擎</div>';
+        // Subtitle Engine group
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🔍</span><span class="form-group-title">字幕引擎</span></div>';
         var enabledList = c.enabled_providers || [];
         var allProviders = ['zimuku','subhd','assrt','opensubtitles'];
         var isConcurrent = c.concurrent_search;
@@ -1957,16 +2337,39 @@
         html += '<div style="border-top:1px solid var(--border);margin:0 0 16px;padding-top:16px"><div style="font-size:0.95rem;font-weight:600;color:var(--accent);margin-bottom:12px">OpenSubtitles</div>';
         html += '<div class="form-row"><span class="form-label">API Key</span><input class="form-input" id="cfg-os-api-key" value="' + esc(c.opensubtitles_api_key || '') + '"></div>';
         html += '<div class="form-row"><span class="form-label">Username</span><input class="form-input" id="cfg-os-user" value="' + esc(c.opensubtitles_username || '') + '"></div>';
-        html += '<div class="form-row"><span class="form-label">Password</span><input class="form-input" id="cfg-os-pass" type="password" value="' + esc(c.opensubtitles_password || '') + '"></div>';
+        html += '<div class="form-row"><span class="form-label">Password</span>' + sensitiveInput('cfg-os-pass', c.opensubtitles_password || '', 'Password') + '</div>';
         html += '</div>';
         html += '</div>';
 
-        html += '<div class="card"><div class="card-title">验证码识别</div>';
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🔐</span><span class="form-group-title">验证码识别</span></div>';
         html += '<div class="form-row form-hint" style="color:var(--text-dim);font-size:0.9rem"><span class="form-label"></span>默认使用 ddddocr（免费），百度 OCR 为备用</div>';
         html += '<div class="form-row"><span class="form-label">百度 OCR Key</span><input class="form-input" id="cfg-baidu-key" value="' + esc(c.baidu_ocr_api_key || '') + '"></div>';
         html += '<div class="form-row"><span class="form-label">百度 OCR Secret</span><input class="form-input" id="cfg-baidu-secret" value="' + esc(c.baidu_ocr_secret_key || '') + '"></div>';
         html += '</div>';
 
+        html += '</div>';
+
+        // Douban monitoring
+        html += '<div class="form-group">';
+        html += '<div class="form-group-header"><span class="form-group-icon">🎬</span><span class="form-group-title">豆瓣监控</span></div>';
+        html += '<div class="form-row"><span class="form-label">启用监控</span><input class="form-checkbox" id="douban_enabled" type="checkbox"' + (c.douban_enabled ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">开启后自动定时检查豆瓣想看列表</span></div>';
+        html += '<div class="form-row"><span class="form-label">用户ID</span><input class="form-input" id="douban_user_id" value="' + esc(c.douban_user_id || '140463388') + '" placeholder="140463388"></div>';
+html += '<div class="form-row"><span class="form-label">检查间隔(小时)</span><input class="form-input" id="douban_check_interval_hours" type="number" value="' + esc(c.douban_check_interval_hours || 12) + '" min="1" max="168" style="width:80px"></div>';
+         html += '<div class="form-row"><span class="form-label">TMDB Key</span>' + sensitiveInput('tmdb_api_key', c.tmdb_api_key || '', 'YOUR_TMDB_API_KEY') + '</div>';
+        html += '<div class="form-row"><span class="form-label">钉钉Webhook</span><input class="form-input" id="dingtalk_webhook_url" value="' + esc(c.dingtalk_webhook_url || '') + '" placeholder="https://oapi.dingtalk.com/robot/send?access_token=xxx"></div>';
+        html += '<div class="form-row"><span class="form-label">启用钉钉通知</span><input class="form-checkbox" id="dingtalk_enabled" type="checkbox"' + (c.dingtalk_enabled ? ' checked' : '') + '></div>';
+        html += '<div class="form-row" style="flex-direction:column;align-items:flex-start;gap:6px">';
+        html += '<span class="form-label">状态</span>';
+        html += '<div style="padding:12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);width:100%">';
+        html += '<div style="color:var(--text-dim);font-size:var(--text-sm);margin-bottom:8px">上次检查: <span id="douban_last_check" style="color:var(--text)">-</span></div>';
+        html += '<div id="douban_status_msg" style="color:var(--text-dim);font-size:var(--text-sm)">-</div>';
+        html += '</div></div>';
+        html += '<div class="form-row"><span class="form-label"></span><div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="doubanCheck()" id="douban_check_btn">手动检查</button></div></div>';
+        html += '<div class="form-row" style="flex-direction:column;align-items:flex-start;gap:6px">';
+        html += '<span class="form-label">最近添加</span>';
+        html += '<div id="douban_history" style="max-height:150px;overflow-y:auto;font-size:var(--text-sm);color:var(--text-dim);width:100%">-</div>';
+        html += '</div>';
         html += '</div>';
 
         html += '<div style="margin-top:16px"><button class="btn btn-primary btn-save" onclick="saveConfig()">保存配置</button></div>';
@@ -2099,6 +2502,103 @@
                 e.stopPropagation();
                 this.classList.toggle('active');
             });
+        });
+    }
+
+    // Douban monitoring functions
+    function loadDoubanSettings() {
+        fetch('/api/settings').then(function(r) { return r.json(); }).then(function(settings) {
+            var el;
+            el = document.getElementById('douban_enabled');
+            if (el) el.checked = settings.douban_enabled || false;
+            el = document.getElementById('douban_user_id');
+            if (el) el.value = settings.douban_user_id || '140463388';
+            el = document.getElementById('douban_check_interval_hours');
+            if (el) el.value = settings.douban_check_interval_hours || 12;
+            el = document.getElementById('tmdb_api_key');
+            if (el) el.value = settings.tmdb_api_key || '';
+            el = document.getElementById('dingtalk_webhook_url');
+            if (el) el.value = settings.dingtalk_webhook_url || '';
+            el = document.getElementById('dingtalk_enabled');
+            if (el) el.checked = settings.dingtalk_enabled || false;
+            return fetch('/api/douban/status');
+        }).then(function(r) { return r.json(); }).then(function(status) {
+            var el = document.getElementById('douban_last_check');
+            if (el) el.textContent = status.last_check || '-';
+            var msgEl = document.getElementById('douban_status_msg');
+            if (msgEl && status.last_result && status.last_result.added_movies) {
+                msgEl.textContent = '上次添加: ' + status.last_result.added_movies.length + ' 部电影';
+            }
+        }).catch(function(e) {
+            console.error('Failed to load douban settings:', e);
+        });
+    }
+
+    function saveDoubanSettings() {
+        var settings = {
+            douban_enabled: document.getElementById('douban_enabled').checked,
+            douban_user_id: document.getElementById('douban_user_id').value,
+            douban_check_interval_hours: parseInt(document.getElementById('douban_check_interval_hours').value) || 12,
+            tmdb_api_key: document.getElementById('tmdb_api_key').value,
+            dingtalk_webhook_url: document.getElementById('dingtalk_webhook_url').value,
+            dingtalk_enabled: document.getElementById('dingtalk_enabled').checked,
+        };
+        fetch('/api/settings', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(settings)
+        }).then(function(r) {
+            if (r.ok) {
+                toast('豆瓣设置已保存', 'success');
+            }
+        }).catch(function(e) {
+            console.error('Failed to save douban settings:', e);
+            toast('保存失败', 'error');
+        });
+    }
+
+    function doubanCheck() {
+        var btn = document.getElementById('douban_check_btn');
+        btn.disabled = true;
+        btn.textContent = '检查中...';
+        fetch('/api/douban/check', {method: 'POST'}).then(function(r) { return r.json(); }).then(function(result) {
+            if (result.status === 'error') {
+                toast(result.error, 'error');
+            } else {
+                toast('检查完成: 新增 ' + (result.new_movies_count || 0) + ' 部电影', 'success');
+                var el = document.getElementById('douban_last_check');
+                if (el) el.textContent = result.last_check || '-';
+            }
+            loadDoubanHistory();
+        }).catch(function(e) {
+            console.error('Douban check failed:', e);
+            toast('检查失败', 'error');
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = '手动检查';
+        });
+    }
+
+    function loadDoubanHistory() {
+        fetch('/api/douban/history').then(function(r) { return r.json(); }).then(function(history) {
+            var container = document.getElementById('douban_history');
+            if (!container) return;
+            if (!history || history.length === 0) {
+                container.textContent = '-';
+                return;
+            }
+            container.innerHTML = history.slice(0, 10).map(function(h) {
+                var color = h.action === 'added' ? 'var(--color-green)' : 'var(--danger)';
+                var icon = h.action === 'added' ? '✓' : '✗';
+                return '<div style="padding: 4px 0; border-bottom: 1px solid var(--border);">' +
+                    '<span style="color: ' + color + ';">' + icon + '</span> ' +
+                    '<span style="color: var(--text);">' + esc(h.movie_name || h.original_title || '') + '</span> ' +
+                    '<span style="color: var(--text-dim); font-size: var(--text-xs);">' + (h.year || '') + '</span> ' +
+                    '<span style="color: var(--text-dim); font-size: var(--text-xs); float: right;">' + (h.timestamp ? new Date(h.timestamp).toLocaleString() : '') + '</span>' +
+                    '</div>';
+            }).join('');
+        }).catch(function(e) {
+            console.error('Failed to load douban history:', e);
         });
     }
 
