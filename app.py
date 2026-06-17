@@ -18,6 +18,11 @@ from fastapi.responses import HTMLResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 import douban_monitor
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 logger = logging.getLogger(__name__)
 
 VIDEO_ROOT = Path(os.environ.get("VIDEO_ROOT", "/volume1/video"))
@@ -549,7 +554,8 @@ def _mask_sensitive(cfg: dict) -> dict:
     sensitive_keys = [
         "radarr_api_key", "sonarr_api_key", "baidu_ocr_api_key",
         "baidu_ocr_secret_key", "assrt_api_token", "opensubtitles_api_key",
-        "opensubtitles_password", "ai_api_key",
+        "opensubtitles_password", "ai_api_key", "tmdb_api_key",
+        "dingtalk_webhook_url",
     ]
     for key in sensitive_keys:
         val = masked.get(key, "")
@@ -878,7 +884,8 @@ async def update_settings(request: Request):
     sensitive_keys = [
         "radarr_api_key", "sonarr_api_key", "baidu_ocr_api_key",
         "baidu_ocr_secret_key", "assrt_api_token", "opensubtitles_api_key",
-        "opensubtitles_password", "ai_api_key",
+        "opensubtitles_password", "ai_api_key", "tmdb_api_key",
+        "dingtalk_webhook_url",
     ]
 
     for key, value in body.items():

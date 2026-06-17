@@ -915,8 +915,7 @@
 
     fetch('/api/settings').then(function(r) { return r.json(); }).then(function(s) {
         _config = s;
-        loadDoubanSettings();
-        loadDoubanHistory();
+        loadDoubanStatus();
         navigateTo('movies');
     }).catch(function() {
         navigateTo('movies');
@@ -2350,26 +2349,23 @@
 
         html += '</div>';
 
-        // Douban monitoring
+        // Douban sync
         html += '<div class="form-group">';
-        html += '<div class="form-group-header"><span class="form-group-icon">🎬</span><span class="form-group-title">豆瓣监控</span></div>';
-        html += '<div class="form-row"><span class="form-label">启用监控</span><input class="form-checkbox" id="douban_enabled" type="checkbox"' + (c.douban_enabled ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">开启后自动定时检查豆瓣想看列表</span></div>';
+        html += '<div class="form-group-header"><span class="form-group-icon">🎬</span><span class="form-group-title">豆瓣同步</span></div>';
+        html += '<div class="form-row"><span class="form-label">启用同步</span><input class="form-checkbox" id="douban_enabled" type="checkbox"' + (c.douban_enabled ? ' checked' : '') + '><span style="color:var(--text-dim);font-size:12px;margin-left:8px">开启后自动定时同步豆瓣想看列表到Radarr</span></div>';
         html += '<div class="form-row"><span class="form-label">用户ID</span><input class="form-input" id="douban_user_id" value="' + esc(c.douban_user_id || '140463388') + '" placeholder="140463388"></div>';
-html += '<div class="form-row"><span class="form-label">检查间隔(小时)</span><input class="form-input" id="douban_check_interval_hours" type="number" value="' + esc(c.douban_check_interval_hours || 12) + '" min="1" max="168" style="width:80px"></div>';
-         html += '<div class="form-row"><span class="form-label">TMDB Key</span>' + sensitiveInput('tmdb_api_key', c.tmdb_api_key || '', 'YOUR_TMDB_API_KEY') + '</div>';
+        html += '<div class="form-row"><span class="form-label">同步间隔(小时)</span><input class="form-input" id="douban_check_interval_hours" type="number" value="' + esc(c.douban_check_interval_hours || 12) + '" min="1" max="168" style="width:80px"></div>';
+        html += '<div class="form-row"><span class="form-label">TMDB Key</span>' + sensitiveInput('tmdb_api_key', c.tmdb_api_key || '', 'YOUR_TMDB_API_KEY') + '</div>';
         html += '<div class="form-row"><span class="form-label">钉钉Webhook</span><input class="form-input" id="dingtalk_webhook_url" value="' + esc(c.dingtalk_webhook_url || '') + '" placeholder="https://oapi.dingtalk.com/robot/send?access_token=xxx"></div>';
         html += '<div class="form-row"><span class="form-label">启用钉钉通知</span><input class="form-checkbox" id="dingtalk_enabled" type="checkbox"' + (c.dingtalk_enabled ? ' checked' : '') + '></div>';
         html += '<div class="form-row" style="flex-direction:column;align-items:flex-start;gap:6px">';
         html += '<span class="form-label">状态</span>';
         html += '<div style="padding:12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);width:100%">';
-        html += '<div style="color:var(--text-dim);font-size:var(--text-sm);margin-bottom:8px">上次检查: <span id="douban_last_check" style="color:var(--text)">-</span></div>';
+        html += '<div style="color:var(--text-dim);font-size:var(--text-sm);margin-bottom:8px">上次同步: <span id="douban_last_check" style="color:var(--text)">-</span></div>';
+        html += '<div style="color:var(--text-dim);font-size:var(--text-sm);margin-bottom:8px">基线: <span id="douban_baseline" style="color:var(--text)">-</span></div>';
         html += '<div id="douban_status_msg" style="color:var(--text-dim);font-size:var(--text-sm)">-</div>';
         html += '</div></div>';
-        html += '<div class="form-row"><span class="form-label"></span><div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="doubanCheck()" id="douban_check_btn">手动检查</button></div></div>';
-        html += '<div class="form-row" style="flex-direction:column;align-items:flex-start;gap:6px">';
-        html += '<span class="form-label">最近添加</span>';
-        html += '<div id="douban_history" style="max-height:150px;overflow-y:auto;font-size:var(--text-sm);color:var(--text-dim);width:100%">-</div>';
-        html += '</div>';
+        html += '<div style="margin-top:4px"><button class="btn btn-outline btn-sm test-btn" onclick="doubanSync()" id="douban_check_btn">手动同步</button> <span id="douban_sync_result" style="margin-left:8px;font-size:13px"></span></div>';
         html += '</div>';
 
         html += '<div style="margin-top:16px"><button class="btn btn-primary btn-save" onclick="saveConfig()">保存配置</button></div>';
@@ -2468,7 +2464,13 @@ html += '<div class="form-row"><span class="form-label">检查间隔(小时)</sp
             assrt_api_token: document.getElementById('cfg-assrt-token').value.trim(),
             opensubtitles_api_key: document.getElementById('cfg-os-api-key').value.trim(),
             opensubtitles_username: document.getElementById('cfg-os-user').value.trim(),
-            opensubtitles_password: document.getElementById('cfg-os-pass').value
+            opensubtitles_password: document.getElementById('cfg-os-pass').value,
+            douban_enabled: document.getElementById('douban_enabled').checked,
+            douban_user_id: document.getElementById('douban_user_id').value.trim(),
+            douban_check_interval_hours: parseInt(document.getElementById('douban_check_interval_hours').value) || 12,
+            tmdb_api_key: document.getElementById('tmdb_api_key').value.trim(),
+            dingtalk_webhook_url: document.getElementById('dingtalk_webhook_url').value.trim(),
+            dingtalk_enabled: document.getElementById('dingtalk_enabled').checked
         };
         fetch('/api/settings', {
             method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -2506,99 +2508,52 @@ html += '<div class="form-row"><span class="form-label">检查间隔(小时)</sp
     }
 
     // Douban monitoring functions
-    function loadDoubanSettings() {
-        fetch('/api/settings').then(function(r) { return r.json(); }).then(function(settings) {
-            var el;
-            el = document.getElementById('douban_enabled');
-            if (el) el.checked = settings.douban_enabled || false;
-            el = document.getElementById('douban_user_id');
-            if (el) el.value = settings.douban_user_id || '140463388';
-            el = document.getElementById('douban_check_interval_hours');
-            if (el) el.value = settings.douban_check_interval_hours || 12;
-            el = document.getElementById('tmdb_api_key');
-            if (el) el.value = settings.tmdb_api_key || '';
-            el = document.getElementById('dingtalk_webhook_url');
-            if (el) el.value = settings.dingtalk_webhook_url || '';
-            el = document.getElementById('dingtalk_enabled');
-            if (el) el.checked = settings.dingtalk_enabled || false;
-            return fetch('/api/douban/status');
-        }).then(function(r) { return r.json(); }).then(function(status) {
+    function loadDoubanStatus() {
+        fetch('/api/douban/status').then(function(r) { return r.json(); }).then(function(status) {
             var el = document.getElementById('douban_last_check');
             if (el) el.textContent = status.last_check || '-';
+            var baselineEl = document.getElementById('douban_baseline');
+            if (baselineEl) {
+                var baseline = status.baseline || {};
+                if (baseline.movie_name && baseline.add_date) {
+                    baselineEl.textContent = baseline.movie_name + ' (' + baseline.add_date + ')';
+                } else {
+                    baselineEl.textContent = '未设置';
+                }
+            }
             var msgEl = document.getElementById('douban_status_msg');
             if (msgEl && status.last_result && status.last_result.added_movies) {
                 msgEl.textContent = '上次添加: ' + status.last_result.added_movies.length + ' 部电影';
             }
         }).catch(function(e) {
-            console.error('Failed to load douban settings:', e);
+            console.error('Failed to load douban status:', e);
         });
     }
 
-    function saveDoubanSettings() {
-        var settings = {
-            douban_enabled: document.getElementById('douban_enabled').checked,
-            douban_user_id: document.getElementById('douban_user_id').value,
-            douban_check_interval_hours: parseInt(document.getElementById('douban_check_interval_hours').value) || 12,
-            tmdb_api_key: document.getElementById('tmdb_api_key').value,
-            dingtalk_webhook_url: document.getElementById('dingtalk_webhook_url').value,
-            dingtalk_enabled: document.getElementById('dingtalk_enabled').checked,
-        };
-        fetch('/api/settings', {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(settings)
-        }).then(function(r) {
-            if (r.ok) {
-                toast('豆瓣设置已保存', 'success');
-            }
-        }).catch(function(e) {
-            console.error('Failed to save douban settings:', e);
-            toast('保存失败', 'error');
-        });
-    }
-
-    function doubanCheck() {
+    function doubanSync() {
         var btn = document.getElementById('douban_check_btn');
+        var resultEl = document.getElementById('douban_sync_result');
         btn.disabled = true;
-        btn.textContent = '检查中...';
+        btn.textContent = '同步中...';
+        if (resultEl) resultEl.textContent = '';
         fetch('/api/douban/check', {method: 'POST'}).then(function(r) { return r.json(); }).then(function(result) {
-            if (result.status === 'error') {
-                toast(result.error, 'error');
+            if (result.success === false) {
+                var errorMsg = result.failed_movies && result.failed_movies[0] ? result.failed_movies[0].reason : '同步失败';
+                if (resultEl) { resultEl.textContent = errorMsg; resultEl.style.color = 'var(--danger)'; }
             } else {
-                toast('检查完成: 新增 ' + (result.new_movies_count || 0) + ' 部电影', 'success');
-                var el = document.getElementById('douban_last_check');
-                if (el) el.textContent = result.last_check || '-';
+                var msg = '新增 ' + (result.new_movies_count || 0) + ' 部';
+                if (result.added_movies && result.added_movies.length > 0) {
+                    msg += '，已添加 ' + result.added_movies.length + ' 部';
+                }
+                if (resultEl) { resultEl.textContent = msg; resultEl.style.color = 'var(--color-green)'; }
             }
-            loadDoubanHistory();
+            loadDoubanStatus();
         }).catch(function(e) {
-            console.error('Douban check failed:', e);
-            toast('检查失败', 'error');
+            console.error('Douban sync failed:', e);
+            if (resultEl) { resultEl.textContent = '同步失败'; resultEl.style.color = 'var(--danger)'; }
         }).finally(function() {
             btn.disabled = false;
-            btn.textContent = '手动检查';
-        });
-    }
-
-    function loadDoubanHistory() {
-        fetch('/api/douban/history').then(function(r) { return r.json(); }).then(function(history) {
-            var container = document.getElementById('douban_history');
-            if (!container) return;
-            if (!history || history.length === 0) {
-                container.textContent = '-';
-                return;
-            }
-            container.innerHTML = history.slice(0, 10).map(function(h) {
-                var color = h.action === 'added' ? 'var(--color-green)' : 'var(--danger)';
-                var icon = h.action === 'added' ? '✓' : '✗';
-                return '<div style="padding: 4px 0; border-bottom: 1px solid var(--border);">' +
-                    '<span style="color: ' + color + ';">' + icon + '</span> ' +
-                    '<span style="color: var(--text);">' + esc(h.movie_name || h.original_title || '') + '</span> ' +
-                    '<span style="color: var(--text-dim); font-size: var(--text-xs);">' + (h.year || '') + '</span> ' +
-                    '<span style="color: var(--text-dim); font-size: var(--text-xs); float: right;">' + (h.timestamp ? new Date(h.timestamp).toLocaleString() : '') + '</span>' +
-                    '</div>';
-            }).join('');
-        }).catch(function(e) {
-            console.error('Failed to load douban history:', e);
+            btn.textContent = '手动同步';
         });
     }
 
