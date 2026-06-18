@@ -17,6 +17,7 @@ from .utils import (
     SUBTITLE_EXTENSIONS,
     _extract_best_from_zip,
     _extract_best_from_rar,
+    _extract_best_from_7z,
     _ensure_rarfile,
     _get_ddddocr,
 )
@@ -539,6 +540,8 @@ class SubHDProvider(SubtitleProvider):
             fname = f"subhd_{int(time.time())}.srt"
         elif content[:4] == b'Rar!':
             fname = f"subhd_{int(time.time())}.rar"
+        elif content[:6] == b'7z\xbc\xaf\x27\x1c':
+            fname = f"subhd_{int(time.time())}.7z"
         else:
             return None, ""
 
@@ -586,7 +589,7 @@ class SubHDProvider(SubtitleProvider):
                         archive_path.unlink()
                     except OSError:
                         pass
-                    return new_path, new_path.name
+                    return new_path, archive_path.name
                 return archive_path, archive_path.name
 
             try:
@@ -595,6 +598,17 @@ class SubHDProvider(SubtitleProvider):
                 stream = io.BytesIO(data)
                 if rarfile.is_rarfile(stream):
                     content, best_name = _extract_best_from_rar(data, archive_path.name)
+                    if content:
+                        ext = Path(best_name).suffix if best_name else ".srt"
+                        out_path = _unique_output_path(output_dir, _out_name(ext))
+                        out_path.write_bytes(content)
+                        return out_path, best_name or out_path.name
+            except Exception:
+                pass
+
+            try:
+                if data[:6] == b'7z\xbc\xaf\x27\x1c':
+                    content, best_name = _extract_best_from_7z(data, archive_path.name)
                     if content:
                         ext = Path(best_name).suffix if best_name else ".srt"
                         out_path = _unique_output_path(output_dir, _out_name(ext))

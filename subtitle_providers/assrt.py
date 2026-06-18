@@ -8,7 +8,7 @@ from typing import Optional, List
 import requests
 
 from .base import SubtitleResult, SubtitleProvider, _unique_output_path
-from .utils import SUBTITLE_EXTENSIONS, _extract_best_from_zip, _extract_best_from_rar
+from .utils import SUBTITLE_EXTENSIONS, _extract_best_from_zip, _extract_best_from_rar, _extract_best_from_7z, _ensure_rarfile
 
 
 class AssrtProvider(SubtitleProvider):
@@ -188,6 +188,18 @@ class AssrtProvider(SubtitleProvider):
                     out_path.write_bytes(content)
                     return out_path, best_name or out_path.name
 
+            try:
+                data = archive_path.read_bytes()
+                if data[:6] == b'7z\xbc\xaf\x27\x1c':
+                    content, best_name = _extract_best_from_7z(data, archive_path.name)
+                    if content:
+                        ext = Path(best_name).suffix if best_name else ".srt"
+                        out_path = _unique_output_path(output_dir, _out_name(ext))
+                        out_path.write_bytes(content)
+                        return out_path, best_name or out_path.name
+            except Exception:
+                pass
+
             if any(archive_path.name.lower().endswith(ext) for ext in SUBTITLE_EXTENSIONS):
                 if video_filename:
                     new_path = _unique_output_path(output_dir, _out_name(archive_path.suffix))
@@ -196,7 +208,7 @@ class AssrtProvider(SubtitleProvider):
                         archive_path.unlink()
                     except OSError:
                         pass
-                    return new_path, new_path.name
+                    return new_path, archive_path.name
                 return archive_path, archive_path.name
 
             return None, ""

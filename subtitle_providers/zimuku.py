@@ -24,6 +24,7 @@ from .utils import (
     _get_ddddocr,
     string_to_hex,
     _extract_best_subtitle,
+    _extract_best_from_7z,
     compute_match_score,
 )
 
@@ -335,6 +336,8 @@ class ZimukuClient:
         disposition = r.headers.get("Content-Disposition", "").lower()
         if "filename=" in disposition:
             fname = disposition.split("filename=")[-1].strip('"\'; ')
+        elif r.content[:6] == b'7z\xbc\xaf\x27\x1c':
+            fname = f"subtitle_{int(time.time())}.7z"
         else:
             fname = f"subtitle_{int(time.time())}.zip"
 
@@ -412,7 +415,18 @@ class ZimukuClient:
         except Exception:
             pass
 
-        # Plain subtitle file
+        try:
+            data = archive_path.read_bytes()
+            if data[:6] == b'7z\xbc\xaf\x27\x1c':
+                content, best_name = _extract_best_from_7z(data, archive_path.name)
+                if content:
+                    ext = Path(best_name).suffix if best_name else ".srt"
+                    out_path = _unique_output_path(output_dir, _out_name(ext))
+                    out_path.write_bytes(content)
+                    return out_path, best_name or out_path.name
+        except Exception:
+            pass
+
         fname = archive_path.name.lower()
         if any(fname.endswith(ext) for ext in (".srt", ".ass", ".ssa", ".sub", ".vtt")):
             if video_filename:
@@ -422,7 +436,7 @@ class ZimukuClient:
                     archive_path.unlink()
                 except OSError:
                     pass
-                return new_path, new_path.name
+                return new_path, archive_path.name
             return archive_path, archive_path.name
 
         return None, ""

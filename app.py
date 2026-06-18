@@ -4,6 +4,7 @@ import io
 import json
 import os
 import logging
+import re
 import sys
 import time
 import uuid
@@ -360,6 +361,22 @@ def _has_subtitle(video_path: Path) -> bool:
     return False
 
 
+_EPISODE_RE = re.compile(r'[sS](\d{1,2})[eE](\d{1,3})')
+
+
+def _extract_episode_key(stem: str) -> Optional[str]:
+    """Extract normalized SxxExx key from a filename stem.
+
+    Returns a lowercase normalized string like 's1e10' (int-padded) so that
+    'S01E10' and 'S1E10' both map to the same key.  Returns None when the
+    stem contains no episode identifier (e.g. movies).
+    """
+    m = _EPISODE_RE.search(stem)
+    if m:
+        return f"s{int(m.group(1))}e{int(m.group(2))}"
+    return None
+
+
 def _get_subtitle_status(video_path: Path) -> str:
     """Return subtitle status: 'zh' (has Chinese), 'en' (English only), 'none', 'no_file'."""
     try:
@@ -388,11 +405,17 @@ def _get_subtitle_status(video_path: Path) -> str:
     # matching subtitles belonging to completely different videos in same directory.
     if not found_zh:
         stem_lower = stem.lower()
+        vid_ep = _extract_episode_key(stem_lower)
         for sub_ext in SUBTITLE_EXTENSIONS:
             for sub_file in parent.glob(f"*{sub_ext}"):
                 if sub_file.is_file() and sub_file != video_path:
                     sub_stem = sub_file.stem.lower()
-                    if sub_stem.startswith(stem_lower) or stem_lower.startswith(sub_stem.split(".")[0]):
+                    sub_ep = _extract_episode_key(sub_stem)
+                    # Match only if the subtitle name starts with the full video
+                    # stem, or both share the same SxxExx episode identifier.
+                    # This prevents E01's subtitle from matching E10 just because
+                    # they share the show name as the first dot-segment.
+                    if sub_stem.startswith(stem_lower) or (vid_ep and sub_ep and vid_ep == sub_ep):
                         lang = _detect_subtitle_lang(sub_file)
                         if lang in ("zh", "zh+en"):
                             found_zh = True
@@ -794,7 +817,7 @@ async def _download_from_provider(provider_name: str, result, output_dir: Path,
 
 
 def _cleanup_archives(output_dir: Path):
-    for archive_ext in [".zip", ".rar"]:
+    for archive_ext in [".zip", ".rar", ".7z"]:
         for f in output_dir.glob(f"*{archive_ext}"):
             if f.is_file():
                 try:

@@ -8,7 +8,7 @@ from typing import Optional, List
 import requests
 
 from .base import SubtitleResult, SubtitleProvider, _unique_output_path
-from .utils import SUBTITLE_EXTENSIONS, _extract_best_from_zip, _extract_best_from_rar
+from .utils import SUBTITLE_EXTENSIONS, _extract_best_from_zip, _extract_best_from_rar, _extract_best_from_7z
 
 
 class OpenSubtitlesProvider(SubtitleProvider):
@@ -87,7 +87,9 @@ class OpenSubtitlesProvider(SubtitleProvider):
                     lang = "zho_chs"
                 elif lang_code in ("zh-tw", "zht"):
                     lang = "zho_cht"
-                elif lang_code in ("zh-cn-zh-tw", "zho_chs+eng"):
+                elif lang_code == "zh-cn-zh-tw":
+                    lang = "zho_chs"
+                elif lang_code == "zho_chs+eng":
                     lang = "zho_chs+eng"
                 elif lang_code in ("en", "eng"):
                     lang = "eng"
@@ -218,7 +220,7 @@ class OpenSubtitlesProvider(SubtitleProvider):
                         archive_path.unlink()
                     except OSError:
                         pass
-                    return new_path, new_path.name
+                    return new_path, archive_path.name
                 return archive_path, archive_path.name
 
             try:
@@ -226,6 +228,17 @@ class OpenSubtitlesProvider(SubtitleProvider):
                 stream = io.BytesIO(data)
                 if rarfile.is_rarfile(stream):
                     content, best_name = _extract_best_from_rar(data, archive_path.name)
+                    if content:
+                        ext = Path(best_name).suffix if best_name else ".srt"
+                        out_path = _unique_output_path(output_dir, _out_name(ext))
+                        out_path.write_bytes(content)
+                        return out_path, best_name or out_path.name
+            except Exception:
+                pass
+
+            try:
+                if data[:6] == b'7z\xbc\xaf\x27\x1c':
+                    content, best_name = _extract_best_from_7z(data, archive_path.name)
                     if content:
                         ext = Path(best_name).suffix if best_name else ".srt"
                         out_path = _unique_output_path(output_dir, _out_name(ext))

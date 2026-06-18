@@ -56,15 +56,23 @@ def _extract_best_subtitle(archive, filename: str) -> tuple:
         if any(ext in lower_name for ext in (".ass", ".ssa", ".srt")):
             score += 1
         # Prefer Chinese simplified
-        if any(kw in lower_name for kw in ("简体", "chs", ".gb.", "简中")):
+        if any(kw in lower_name for kw in (
+            "简体", "chs", ".gb.", "简中",
+            ".zh.", "_zh.", ".chi.", ".zho_chs.", ".zho.",
+        )):
             score += 2
         # Prefer Chinese traditional
-        if any(kw in lower_name for kw in ("繁体", "cht", ".big5.", "繁中")):
+        if any(kw in lower_name for kw in (
+            "繁体", "cht", ".big5.", "繁中",
+            ".zht.", ".zho_cht.",
+        )):
             score += 2
         # Prefer bilingual
         if any(kw in lower_name for kw in (
             "中英", "简英", "繁英", "双语", "简体&英文", "繁体&英文",
-            "chs.eng", "cht.eng"
+            "chs.eng", "cht.eng",
+            ".zh-en.", "_zh-en.", ".zh+en.", ".chs+eng.", ".cht+eng.",
+            ".zho_chs+eng.", ".zho_en.",
         )):
             score += 4
         candidates.append((score, name))
@@ -106,6 +114,44 @@ def _extract_best_from_rar(data: bytes, archive_name: str) -> tuple:
         if rarfile.is_rarfile(stream):
             archive = rarfile.RarFile(stream)
             return _extract_best_subtitle(archive, archive_name)
+    except Exception:
+        pass
+    return None, None
+
+
+class _DictArchive:
+    """Adapter that makes a dict of {name: bytes} quack like a zipfile
+    so _extract_best_subtitle can score and read from it."""
+
+    def __init__(self, files: dict):
+        self._files = files
+
+    def namelist(self):
+        return list(self._files.keys())
+
+    def read(self, name):
+        return self._files[name]
+
+
+def _extract_best_from_7z(data: bytes, archive_name: str) -> tuple:
+    """Wrapper: extract best subtitle from 7z bytes."""
+    try:
+        import py7zr
+        import tempfile
+        stream = io.BytesIO(data)
+        with py7zr.SevenZipFile(stream) as archive:
+            names = archive.namelist()
+            with tempfile.TemporaryDirectory() as tmpdir:
+                archive.extractall(path=tmpdir)
+                files = {}
+                for name in names:
+                    fpath = os.path.join(tmpdir, name)
+                    if os.path.isfile(fpath):
+                        with open(fpath, "rb") as f:
+                            files[name] = f.read()
+        if not files:
+            return None, None
+        return _extract_best_subtitle(_DictArchive(files), archive_name)
     except Exception:
         pass
     return None, None
