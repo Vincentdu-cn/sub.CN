@@ -1258,8 +1258,9 @@ async def download_selected_subtitle(request: Request):
         now_iso = datetime.now().isoformat()
         if downloaded and downloaded.suffix in SUBTITLE_EXTENSIONS:
             _cleanup_archives(output_dir)
+            from subtitle_providers.base import _unique_output_path
             manual_stem = downloaded.stem + ".manual"
-            manual_path = downloaded.with_name(manual_stem + downloaded.suffix)
+            manual_path = _unique_output_path(output_dir, manual_stem + downloaded.suffix)
             try:
                 manual_path.write_bytes(downloaded.read_bytes())
                 downloaded.unlink()

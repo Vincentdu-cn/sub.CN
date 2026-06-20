@@ -220,7 +220,7 @@ class OpenSubtitlesProvider(SubtitleProvider):
                         archive_path.unlink()
                     except OSError:
                         pass
-                    return new_path, archive_path.name
+                    return new_path, new_path.name
                 return archive_path, archive_path.name
 
             try:

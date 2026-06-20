@@ -170,12 +170,6 @@ class ZimukuClient:
 
         if "bilingual" in flags:
             return "zho_chs+eng"
-        if "cn" in flags and "en" in flags:
-            return "zho_chs+eng"
-        if "cn" in flags and "hk" in flags:
-            return "zho_chs"
-        if "hk" in flags and "en" in flags:
-            return "zho_cht+eng"
         if "cn" in flags:
             return "zho_chs"
         if "hk" in flags:
@@ -436,7 +430,7 @@ class ZimukuClient:
                     archive_path.unlink()
                 except OSError:
                     pass
-                return new_path, archive_path.name
+                return new_path, new_path.name
             return archive_path, archive_path.name
 
         return None, ""
