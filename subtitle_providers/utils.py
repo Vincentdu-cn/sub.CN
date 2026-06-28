@@ -57,14 +57,14 @@ def _extract_best_subtitle(archive, filename: str) -> tuple:
             score += 1
         # Prefer Chinese simplified
         if any(kw in lower_name for kw in (
-            "简体", "chs", ".gb.", "简中",
-            ".zh.", "_zh.", ".chi.", ".zho_chs.", ".zho.",
+            "简体", "chs", ".gb.", "_gb.", "简中",
+            ".zh.", "_zh.", ".chi.", "_chi.", ".zho_chs.", ".zho.", "_zho.",
         )):
             score += 2
         # Prefer Chinese traditional
         if any(kw in lower_name for kw in (
-            "繁体", "cht", ".big5.", "繁中",
-            ".zht.", ".zho_cht.",
+            "繁体", "cht", ".big5.", "_big5.", "繁中",
+            ".zht.", "_zht.", ".zho_cht.",
         )):
             score += 2
         # Prefer bilingual
