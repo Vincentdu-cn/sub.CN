@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>sub.CN — 全自动中文字幕管理引擎</title>
+<meta name="description" content="sub.CN — 全自动中文字幕下载 · 智能打分 · AI翻译 · Radarr/Sonarr联动 · 豆瓣同步。一个围绕 Radarr/Sonarr 构建的中文字幕自动化管理工具。" />
+<style>
+/* ============ GOOGLE FONTS ============ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Work+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --c-bg: #FFFBEB;
+  --c-white: #FFFFFF;
+  --c-text: #0F172A;
+  --c-muted: #6B5344;
+  --c-black: #000000;
+  --c-yellow: #FFEB3B;
+  --c-red: #FF5252;
+  --c-blue: #2196F3;
+  --c-teal: #4ECDC4;
+  --c-orange: #FF6B35;
+  --c-purple: #7C3AED;
+  --bord: 3px solid var(--c-black);
+  --shadow: 4px 4px 0px var(--c-black);
+  --shadow-lg: 6px 6px 0px var(--c-black);
+  --shadow-xl: 8px 8px 0px var(--c-black);
+  --maxw: 1200px;
+  --font-head: "Outfit","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-body: "Work Sans","PingFang SC","Microsoft YaHei",sans-serif;
+}
+
+/* ============ RESET ============ */
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body{
+  font-family:var(--font-body);
+  background:var(--c-bg);
+  color:var(--c-text);
+  line-height:1.6;
+  font-size:16px;
+  overflow-x:hidden;
+}
+a{ color:inherit; text-decoration:none; }
+img,svg{ display:block; max-width:100%; }
+ul{ list-style:none; }
+
+/* ============ TYPOGRAPHY ============ */
+h1,h2,h3,h4{ font-family:var(--font-head); line-height:1.1; }
+.brand-dot{ color:var(--c-orange); }
+
+/* ============ LAYOUT ============ */
+.container{ max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+section{ padding:80px 0; }
+
+/* ============ NEUBRUTALIST PRIMITIVES ============ */
+.brut-card{
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  border-radius:0px;
+  transition:transform 200ms ease, box-shadow 200ms ease;
+}
+.brut-card:hover{
+  transform:translate(-2px,-2px);
+  box-shadow:var(--shadow-lg);
+}
+.brut-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:var(--bord);
+  box-shadow:3px 3px 0px var(--c-black);
+  padding:6px 14px;
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  background:var(--c-white);
+  transition:transform 150ms ease, box-shadow 150ms ease;
+}
+.brut-tag:hover{
+  transform:translate(-1px,-1px);
+  box-shadow:5px 5px 0px var(--c-black);
+}
+
+/* ============ SCROLL FADE ============ */
+.reveal{
+  opacity:0;
+  transform:translateY(28px);
+  transition:opacity 600ms ease, transform 600ms ease;
+}
+.reveal.in{ opacity:1; transform:translateY(0); }
+
+/* ============ HEADER / NAV ============ */
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:var(--c-bg);
+  border-bottom:var(--bord);
+}
+.nav{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.nav-brand{
+  font-family:var(--font-head);
+  font-weight:900;
+  font-size:24px;
+  letter-spacing:-0.02em;
+}
+.nav-links{ display:flex; gap:16px; align-items:center; }
+.nav-links a{
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:15px;
+  padding:6px 12px;
+  border:2px solid transparent;
+  transition:border-color 150ms ease, background 150ms ease;
+}
+.nav-links a:hover{ border-color:var(--c-black); background:var(--c-yellow); }
+@media(max-width:600px){ .nav-links{ display:none; } }
+
+/* ============ HERO ============ */
+.hero{
+  padding:72px 0 64px;
+  position:relative;
+}
+.hero-inner{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:1.3fr 1fr;
+  gap:48px;
+  align-items:center;
+}
+@media(max-width:900px){
+  .hero-inner{ grid-template-columns:1fr; gap:40px; }
+}
+.hero-badge{
+  display:inline-block;
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  background:var(--c-orange);
+  color:var(--c-text);
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  padding:6px 16px;
+  margin-bottom:24px;
+}
+.hero-title{
+  font-family:var(--font-head);
+  font-weight:900;
+  font-size:clamp(56px,11vw,128px);
+  letter-spacing:-0.04em;
+  line-height:0.9;
+  text-transform:uppercase;
+  margin-bottom:20px;
+}
+.hero-title .brand-dot{ color:var(--c-orange); }
+.hero-tagline{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:clamp(18px,3vw,24px);
+  color:var(--c-text);
+  margin-bottom:16px;
+  line-height:1.3;
+}
+.hero-desc{
+  font-size:17px;
+  color:var(--c-muted);
+  max-width:520px;
+  margin-bottom:32px;
+  line-height:1.7;
+}
+.hero-ctas{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:32px; }
+.btn{
+  font-family:var(--font-head);
+  font-weight:800;
+  font-size:16px;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+  padding:14px 28px;
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  border-radius:0px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  transition:transform 200ms ease, box-shadow 200ms ease;
+  background:var(--c-white);
+  color:var(--c-text);
+}
+.btn:hover{ transform:translate(-2px,-2px); box-shadow:var(--shadow-lg); }
+.btn-primary{ background:var(--c-orange); }
+.btn-ghost{ background:var(--c-white); }
+.hero-badges{ display:flex; flex-wrap:wrap; gap:10px; }
+
+/* Hero visual */
+.hero-visual{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.hero-stack{
+  position:relative;
+  width:100%;
+  max-width:380px;
+}
+.hero-stack .float-card{
+  position:absolute;
+  z-index:2;
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  padding:12px 16px;
+  font-family:var(--font-head);
+  font-weight:800;
+  font-size:14px;
+  background:var(--c-white);
+  white-space:nowrap;
+}
+.fc-1{ top:-10px; right:0; background:var(--c-yellow); transform:rotate(-4deg); }
+.fc-2{ top:80px; left:-20px; background:var(--c-teal); transform:rotate(3deg); }
+.fc-3{ bottom:70px; right:-15px; background:var(--c-orange); transform:rotate(-2deg); }
+.fc-4{ bottom:0; left:0; background:var(--c-blue); transform:rotate(2deg); }
+.hero-core{
+  position:relative; z-index:1;
+  width:100%; aspect-ratio:1; max-width:320px; margin:60px auto;
+  border:var(--bord);
+  box-shadow:var(--shadow-xl);
+  background:var(--c-white);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:16px;
+}
+.hero-core .wordmark{
+  font-family:var(--font-head); font-weight:900; font-size:64px; letter-spacing:-0.04em; line-height:1;
+}
+.hero-core .wordmark .brand-dot{ color:var(--c-orange); }
+.hero-core .core-label{ font-family:var(--font-head); font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--c-muted); }
+
+/* ============ SECTION HEADING ============ */
+.section-head{ max-width:var(--maxw); margin:0 auto 48px; padding:0 24px; text-align:center; }
+.section-label{
+  display:inline-block;
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  background:var(--c-yellow);
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  padding:6px 16px;
+  margin-bottom:20px;
+}
+.section-title{
+  font-family:var(--font-head);
+  font-weight:900;
+  font-size:clamp(36px,6vw,56px);
+  letter-spacing:-0.03em;
+  line-height:1;
+  margin-bottom:12px;
+}
+.section-sub{
+  font-size:18px; color:var(--c-muted); max-width:680px; margin:0 auto;
+}
+
+/* ============ BENTO GRID ============ */
+.bento{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:20px;
+}
+@media(max-width:900px){ .bento{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:560px){ .bento{ grid-template-columns:1fr; } }
+
+.bento-card{
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  border-radius:0px;
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  transition:transform 200ms ease, box-shadow 200ms ease;
+  position:relative;
+  overflow:hidden;
+}
+.bento-card:hover{
+  transform:translate(-2px,-2px);
+  box-shadow:var(--shadow-lg);
+}
+/* Bento spans */
+.span-6{ grid-column:span 6; }
+.span-4{ grid-column:span 4; }
+.span-8{ grid-column:span 8; }
+.span-12{ grid-column:span 12; }
+@media(max-width:900px){
+  .span-6,.span-4,.span-8{ grid-column:span 2; }
+}
+@media(max-width:560px){
+  .span-6,.span-4,.span-8,.span-12{ grid-column:span 1; }
+}
+
+.card-icon{
+  width:52px; height:52px;
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  background:var(--c-white);
+  color:var(--c-black);
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:4px;
+}
+.card-icon svg{ width:30px; height:30px; }
+.card-title{
+  font-family:var(--font-head);
+  font-weight:900;
+  font-size:22px;
+  letter-spacing:-0.02em;
+  line-height:1.1;
+}
+.card-desc{
+  font-size:15px;
+  color:var(--c-text);
+  opacity:0.8;
+  line-height:1.5;
+}
+.sub-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.sub-tag{
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:12px;
+  border:2px solid var(--c-black);
+  padding:4px 10px;
+  background:var(--c-white);
+  color:var(--c-text);
+  line-height:1.3;
+}
+.card-note{
+  font-size:13px;
+  font-weight:600;
+  color:var(--c-text);
+  opacity:0.7;
+  border-top:2px solid var(--c-black);
+  padding-top:10px;
+  margin-top:auto;
+}
+
+/* Bento card colors */
+.bg-yellow{ background:var(--c-yellow); }
+.bg-orange{ background:var(--c-orange); }
+.bg-red{ background:var(--c-red); color:var(--c-white); }
+.bg-red .card-desc{ color:var(--c-white); opacity:0.9; }
+.bg-red .card-icon{ background:var(--c-white); }
+.bg-red .sub-tag{ background:var(--c-white); color:var(--c-text); }
+.bg-red .card-note{ color:var(--c-white); border-top-color:var(--c-white); opacity:0.9; }
+.bg-blue{ background:var(--c-blue); color:var(--c-white); }
+.bg-blue .card-desc{ color:var(--c-white); opacity:0.9; }
+.bg-blue .card-icon{ background:var(--c-white); }
+.bg-blue .sub-tag{ background:var(--c-white); color:var(--c-text); }
+.bg-blue .card-note{ color:var(--c-white); border-top-color:var(--c-white); opacity:0.9; }
+.bg-teal{ background:var(--c-teal); }
+.bg-teal .card-icon{ background:var(--c-white); }
+.bg-teal .sub-tag{ background:var(--c-white); color:var(--c-text); }
+.bg-teal .card-note{ border-top-color:var(--c-black); }
+.bg-purple{ background:var(--c-purple); color:var(--c-white); }
+.bg-purple .card-desc{ color:var(--c-white); opacity:0.9; }
+.bg-purple .card-icon{ background:var(--c-white); }
+.bg-purple .sub-tag{ background:var(--c-white); color:var(--c-text); }
+.bg-purple .card-note{ color:var(--c-white); border-top-color:var(--c-white); opacity:0.9; }
+
+/* sublist in cards */
+.card-list{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+.card-list li{
+  font-size:14px;
+  font-weight:500;
+  line-height:1.4;
+  padding-left:18px;
+  position:relative;
+}
+.card-list li::before{
+  content:"";
+  position:absolute;
+  left:0; top:8px;
+  width:8px; height:8px;
+  background:var(--c-black);
+}
+.bg-red .card-list li::before,
+.bg-blue .card-list li::before,
+.bg-purple .card-list li::before{
+  background:var(--c-white);
+}
+
+/* ============ FLOW SECTION ============ */
+.flow-section{ background:var(--c-white); border-top:var(--bord); border-bottom:var(--bord); }
+.flow-wrap{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:stretch;
+  gap:0;
+  justify-content:center;
+}
+.flow-step{
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  background:var(--c-white);
+  padding:16px 18px;
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:14px;
+  text-align:center;
+  min-width:120px;
+  max-width:180px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:1 1 auto;
+  transition:transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  margin:6px;
+}
+.flow-step.lit{
+  transform:translate(-2px,-4px);
+  box-shadow:var(--shadow-lg);
+  background:var(--c-yellow);
+}
+.flow-arrow{
+  display:flex;
+  align-items:center;
+  font-family:var(--font-head);
+  font-weight:900;
+  font-size:24px;
+  color:var(--c-black);
+  padding:0 2px;
+}
+@media(max-width:768px){
+  .flow-arrow{ transform:rotate(90deg); padding:4px 0; }
+  .flow-step{ min-width:90%; }
+}
+
+/* ============ TECH STACK ============ */
+.tech-grid{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:center;
+}
+.tech-tag{
+  font-family:var(--font-head);
+  font-weight:800;
+  font-size:15px;
+  border:var(--bord);
+  box-shadow:var(--shadow);
+  padding:10px 18px;
+  background:var(--c-white);
+  transition:transform 200ms ease, box-shadow 200ms ease;
+}
+.tech-tag:hover{ transform:translate(-2px,-2px); box-shadow:var(--shadow-lg); }
+.tech-highlight{
+  background:var(--c-orange);
+  font-weight:900;
+}
+.tech-highlight-blue{ background:var(--c-blue); color:var(--c-white); font-weight:900; }
+
+/* ============ FOOTER ============ */
+.site-footer{
+  border-top:var(--bord);
+  background:var(--c-text);
+  color:var(--c-white);
+  padding:56px 0 32px;
+}
+.footer-inner{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:32px;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+.footer-brand{
+  font-family:var(--font-head);
+  font-weight:900;
+  font-size:32px;
+  letter-spacing:-0.03em;
+  margin-bottom:8px;
+}
+.footer-brand .brand-dot{ color:var(--c-orange); }
+.footer-tag{ font-size:15px; opacity:0.7; }
+.footer-links{ display:flex; gap:24px; flex-wrap:wrap; }
+.footer-links a{
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:15px;
+  border:2px solid transparent;
+  padding:4px 8px;
+  transition:border-color 150ms ease;
+}
+.footer-links a:hover{ border-color:var(--c-white); }
+.footer-bottom{
+  max-width:var(--maxw);
+  margin:40px auto 0;
+  padding:24px 24px 0;
+  border-top:2px solid rgba(255,255,255,0.2);
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:13px;
+  opacity:0.6;
+  letter-spacing:0.04em;
+}
+
+/* ============ ACCESSIBILITY ============ */
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+  outline:3px solid var(--c-orange);
+  outline-offset:3px;
+}
+
+/* ============ REDUCED MOTION ============ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    transition-duration:0.01ms !important;
+  }
+  .reveal{ opacity:1; transform:none; }
+  html{ scroll-behavior:auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="site-header">
+  <nav class="nav" aria-label="主导航">
+    <div class="nav-brand"><span>sub</span><span class="brand-dot">.CN</span></div>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#flow">流程</a>
+      <a href="#tech">技术栈</a>
+      <a href="https://github.com/Vincentdu-cn/sub.CN" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <span class="hero-badge badge-anim reveal">全自动 · AI驱动 · 开箱即用</span>
+      <h1 class="hero-title hero-anim reveal"><span>sub</span><span class="brand-dot">.CN</span></h1>
+      <p class="hero-tagline hero-anim reveal">全自动中文字幕下载 · 智能打分 · AI翻译 · Radarr/Sonarr联动 · 豆瓣同步</p>
+      <p class="hero-desc hero-anim reveal">一个围绕 Radarr/Sonarr 构建的中文字幕自动化管理工具，集成四大字幕引擎、Bazarr式智能打分、AI翻译与审核、以及豆瓣想看→Radarr自动追片的完整闭环。</p>
+      <div class="hero-ctas hero-anim reveal">
+        <a href="#features" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          查看功能
+        </a>
+        <a href="https://github.com/Vincentdu-cn/sub.CN" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.3-3.3-.1-.3-.6-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 5 18.3 5.3 18.3 5.3c.7 1.6.2 2.9.1 3.2.8.9 1.3 2 1.3 3.3 0 4.7-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <div class="hero-badges hero-anim reveal">
+        <span class="brut-tag" style="background:var(--c-yellow);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M18 2L22 6M2 22l2-7 11-11 5 5L9 20z"/></svg>
+          Python
+        </span>
+        <span class="brut-tag" style="background:var(--c-teal);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          FastAPI
+        </span>
+        <span class="brut-tag" style="background:var(--c-orange);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 2a5 5 0 0 1 5 5c0 3-5 9-5 9s-5-6-5-9a5 5 0 0 1 5-5z"/><circle cx="12" cy="18" r="3"/></svg>
+          AI-Powered
+        </span>
+        <span class="brut-tag" style="background:var(--c-white);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg>
+          No Database
+        </span>
+      </div>
+    </div>
+
+    <div class="hero-visual reveal">
+      <div class="hero-stack">
+        <div class="float-card fc-1">字幕搜索</div>
+        <div class="float-card fc-2">智能打分</div>
+        <div class="float-card fc-3">AI翻译</div>
+        <div class="float-card fc-4">豆瓣同步</div>
+        <div class="hero-core">
+          <div class="wordmark"><span>sub</span><span class="brand-dot">.CN</span></div>
+          <div class="core-label">Subtitle Engine</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES BENTO ============ -->
+<section class="features-section" id="features">
+  <div class="section-head reveal">
+    <span class="section-label">核心功能</span>
+    <h2 class="section-title">六大引擎，一个闭环</h2>
+    <p class="section-sub">从字幕搜索到AI翻译，从豆瓣同步到Radarr联动 — sub.CN 覆盖中文字幕管理的每一个环节。</p>
+  </div>
+
+  <div class="bento">
+
+    <!-- Card 1: Multi-Engine -->
+    <article class="bento-card span-6 bg-yellow reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3 class="card-title">多引擎字幕下载</h3>
+      <p class="card-desc">集成四大字幕源引擎，并发搜索，智能合并结果。</p>
+      <ul class="sub-tags">
+        <li class="sub-tag">Zimuku (srtku.com) — 网页爬虫 + Yunsuo WAF 验证码自动绕过</li>
+        <li class="sub-tag">SubHD (subhd.tv) — 爬虫 + API + SVG 验证码自动求解</li>
+        <li class="sub-tag">Assrt (assrt.net) — Token API，双域名容灾</li>
+        <li class="sub-tag">OpenSubtitles — 官方 API，JWT 认证</li>
+      </ul>
+      <p class="card-note">支持并发搜索（所有引擎同时查询）或顺序回退两种模式</p>
+    </article>
+
+    <!-- Card 2: Manual & Auto -->
+    <article class="bento-card span-6 bg-orange reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><circle cx="17" cy="15" r="2" fill="currentColor"/></svg>
+      </div>
+      <h3 class="card-title">手动 &amp; 自动双模式</h3>
+      <p class="card-desc">无缝融入 Radarr/Sonarr 工作流，也支持手动精确控制。</p>
+      <ul class="sub-tags">
+        <li class="sub-tag">自动模式: Webhook 监听 Radarr/Sonarr 导入事件，自动入队</li>
+        <li class="sub-tag">手动模式: 关键词搜索 / 视频文件搜索 / 手动选择 / 自动选取最佳</li>
+        <li class="sub-tag">路径映射: Docker容器路径 ↔ 本地路径自动转换</li>
+      </ul>
+      <p class="card-note">异步队列: 持久化队列，重启不丢失</p>
+    </article>
+
+    <!-- Card 3: Captcha -->
+    <article class="bento-card span-4 bg-red reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <h3 class="card-title">验证码自动处理</h3>
+      <p class="card-desc">两套独立的验证码破解系统，让自动化永不中断。</p>
+      <ul class="sub-tags">
+        <li class="sub-tag">Yunsuo WAF: BMP验证码 → ddddocr ML识别 → 百度OCR兜底</li>
+        <li class="sub-tag">SubHD SVG: 逐字符拆分 → cairosvg渲染 → 逐字OCR</li>
+        <li class="sub-tag">ddddocr 本地 ML 模型，零 API 成本</li>
+      </ul>
+      <p class="card-note">百度 OCR 精准接口双保险</p>
+    </article>
+
+    <!-- Card 4: Smart Scoring -->
+    <article class="bento-card span-8 bg-blue reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <h3 class="card-title">Bazarr式智能打分</h3>
+      <p class="card-desc">Bazarr 级别的权重匹配系统，精准识别最佳字幕。</p>
+      <ul class="sub-tags">
+        <li class="sub-tag">电影权重 (满分120): 标题55 / 年份28 / 来源12 / 发行组6…</li>
+        <li class="sub-tag">剧集权重 (满分146): 剧集名56 / 季24 / 集24 / 来源12…</li>
+        <li class="sub-tag">等价组归一化: BluRay/BDrip/BRRip/Remux 统一识别</li>
+        <li class="sub-tag">阈值选取: 第一名远超第二名时自动选取，否则保留多候选</li>
+      </ul>
+      <p class="card-note">英文补充 (Phase 2): 中文缺失时自动补英文</p>
+    </article>
+
+    <!-- Card 5: AI Translation -->
+    <article class="bento-card span-8 bg-teal reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 5h12"/><path d="M9 3v2c0 4-2 8-5 10"/><path d="M5 9c0 2 3 4 6 4"/><path d="M13 19l4-9 4 9"/><path d="M14 16h6"/></svg>
+      </div>
+      <h3 class="card-title">AI 字幕翻译</h3>
+      <p class="card-desc">OpenAI 兼容 API 驱动的专业字幕翻译，带 AI 审核二校。</p>
+      <ul class="sub-tags">
+        <li class="sub-tag">双语输出: 原文 + 译文逐行交替</li>
+        <li class="sub-tag">SRT &amp; ASS 全格式支持（ASS 标签完整保留）</li>
+        <li class="sub-tag">批量并发: 可配置批大小 + 线程池并发</li>
+        <li class="sub-tag">上下文感知: 前后批次行作为参考传入</li>
+        <li class="sub-tag">术语表 + 媒体上下文（标题/年份/类型/简介）</li>
+        <li class="sub-tag">流式重复检测: 实时检测AI"卡壳"并重试</li>
+        <li class="sub-tag">断点续传: ProgressTracker 持久化进度</li>
+        <li class="sub-tag">标签保护: HTML标签(&lt;i&gt;&lt;b&gt;)和ASS标签({\an8})验证</li>
+      </ul>
+      <p class="card-note">AI 审核: 保守纠错策略，只修严重错误</p>
+    </article>
+
+    <!-- Card 6: Douban Sync -->
+    <article class="bento-card span-4 bg-purple reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.2-8.5"/><polyline points="21 4 21 10 15 10"/></svg>
+      </div>
+      <h3 class="card-title">豆瓣同步 &amp; Arr联动</h3>
+      <p class="card-desc">豆瓣想看 → TMDB匹配 → Radarr自动添加 → 字幕自动下载，全闭环。</p>
+      <ul class="sub-tags">
+        <li class="sub-tag">豆瓣监控: 定时轮询想看列表，检测新增电影</li>
+        <li class="sub-tag">TMDB 匹配: 多标题变体搜索 + 精确/模糊比对</li>
+        <li class="sub-tag">Radarr 自动添加: 按语言选择质量配置文件</li>
+        <li class="sub-tag">Sonarr 联动: 浏览剧集库，按集触发字幕下载</li>
+        <li class="sub-tag">路径映射: 容器/主机路径双向转换</li>
+      </ul>
+      <p class="card-note">钉钉通知: 成功添加电影后推送钉钉机器人</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ AUTOMATION FLOW ============ -->
+<section class="flow-section" id="flow">
+  <div class="section-head reveal">
+    <span class="section-label" style="background:var(--c-orange);">自动化流程</span>
+    <h2 class="section-title">从想看到字幕就位</h2>
+    <p class="section-sub">全链路自动化 — 你只管在豆瓣标记想看，剩下的交给 sub.CN。</p>
+  </div>
+
+  <div class="flow-wrap reveal" id="flowWrap">
+    <div class="flow-step" data-idx="0">豆瓣想看</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="1">TMDB匹配</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="2">Radarr添加</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="3">Radarr下载完成</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="4">Webhook触发</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="5">sub.CN搜索字幕</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="6">智能打分</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="7">下载&amp;安装</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="8">(可选)AI翻译</div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-step" data-idx="9">完成</div>
+  </div>
+</section>
+
+<!-- ============ TECH STACK ============ -->
+<section id="tech">
+  <div class="section-head reveal">
+    <span class="section-label" style="background:var(--c-teal);">技术栈</span>
+    <h2 class="section-title">简洁、轻量、无依赖</h2>
+    <p class="section-sub">纯 Python 单进程架构 — 不需要数据库，不需要 Docker，直接跑。</p>
+  </div>
+
+  <div class="tech-grid reveal">
+    <span class="tech-tag">Python 3</span>
+    <span class="tech-tag">FastAPI</span>
+    <span class="tech-tag">Uvicorn</span>
+    <span class="tech-tag">BeautifulSoup4</span>
+    <span class="tech-tag">guessit</span>
+    <span class="tech-tag">ddddocr</span>
+    <span class="tech-tag">cairosvg</span>
+    <span class="tech-tag">Pillow</span>
+    <span class="tech-tag">py7zr / rarfile</span>
+    <span class="tech-tag">TMDB API</span>
+    <span class="tech-tag">DingTalk</span>
+    <span class="tech-tag tech-highlight">No Database — JSON文件持久化</span>
+    <span class="tech-tag tech-highlight-blue">No Docker — 单进程直接运行</span>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand"><span>sub</span><span class="brand-dot">.CN</span></div>
+      <p class="footer-tag">全自动中文字幕管理引擎</p>
+    </div>
+  </div>
+  <div class="footer-bottom">Built with Python · FastAPI · AI</div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Scroll Reveal (IntersectionObserver) ----
+  var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var revealEls = document.querySelectorAll('.reveal');
+
+  if(prefersReduced || !('IntersectionObserver' in window)){
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          // stagger by adding delay based on sibling order
+          var delay = entry.target.dataset.delay ? parseInt(entry.target.dataset.delay,10) : 0;
+          setTimeout(function(){ entry.target.classList.add('in'); }, delay);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    revealEls.forEach(function(el, i){
+      // small stagger within proximity groups
+      el.dataset.delay = String((i % 4) * 80);
+      io.observe(el);
+    });
+  }
+
+  // ---- Flow Step Sequential Highlight ----
+  var flowWrap = document.getElementById('flowWrap');
+  var flowSteps = flowWrap ? flowWrap.querySelectorAll('.flow-step') : [];
+
+  function lightFlow(){
+    if(!flowSteps.length) return;
+    if(prefersReduced){
+      flowSteps.forEach(function(s){ s.classList.add('lit'); });
+      return;
+    }
+    var idx = 0;
+    function step(){
+      flowSteps.forEach(function(s){ s.classList.remove('lit'); });
+      if(flowSteps[idx]){ flowSteps[idx].classList.add('lit'); }
+      idx = (idx + 1) % flowSteps.length;
+    }
+    // Only run when section is visible
+    if('IntersectionObserver' in window){
+      var fio = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            step();
+            // continue cycling
+            entry.target._timer = setInterval(step, 1000);
+          } else {
+            if(entry.target._timer){ clearInterval(entry.target._timer); entry.target._timer = null; }
+            flowSteps.forEach(function(s){ s.classList.remove('lit'); });
+          }
+        });
+      }, { threshold: 0.2 });
+      fio.observe(flowWrap);
+    } else {
+      step();
+      setInterval(step, 1000);
+    }
+  }
+  lightFlow();
+
+  // ---- Nav active link smooth scroll offset (header height) ----
+  var headerH = 64;
+  document.querySelectorAll('a[href^="#"]').forEach(function(link){
+    link.addEventListener('click', function(e){
+      var href = link.getAttribute('href');
+      if(href === '#' || href.length < 2) return;
+      var target = document.querySelector(href);
+      if(!target) return;
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.pageYOffset - headerH - 16;
+      window.scrollTo({ top: top, behavior: prefersReduced ? 'auto' : 'smooth' });
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
