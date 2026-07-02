@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <setting id="api_url" type="text" label="API 地址" default="http://192.168.199.178:19030"/>
+    <setting id="api_timeout" type="integer" label="请求超时（秒）" default="30"/>
+    <setting id="path_from" type="text" label="Kodi 路径前缀" default="/volume1/video"/>
+    <setting id="path_to" type="text" label="API 路径前缀" default="/video"/>
+</settings>

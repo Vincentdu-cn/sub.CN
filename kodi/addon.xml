@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="service.subtitles.subcn" name="Sub.CN 字幕" version="1.0.0" provider-name="subcn">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.requests" version="2.22.0"/>
+    </requires>
+    <extension point="xbmc.subtitle.module" library="service.py"/>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Sub.CN Subtitle Service</summary>
+        <summary lang="zh">Sub.CN 字幕服务</summary>
+        <description lang="en">Search and download subtitles via Sub.CN API</description>
+        <description lang="zh">通过 Sub.CN API 搜索和下载字幕</description>
+        <platform>all</platform>
+    </extension>
+</addon>
